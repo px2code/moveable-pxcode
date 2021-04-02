@@ -66,9 +66,9 @@ export function triggerAble(
     let inputTarget: Element;
 
     if (isEnd && inputEvent) {
-        const iframe = document.querySelector("iframe[px-code-frame]");
+        const iframe = document.querySelector("iframe[px-code-frame]") as HTMLIFrameElement;
         const contentDocument = iframe.contentDocument;
-        inputTarget = contentDocument.elementFromPoint(e.clientX, e.clientY) || inputEvent.target;
+        inputTarget = contentDocument!.elementFromPoint(e.clientX, e.clientY) || inputEvent.target;
     }
     const results = events.filter((able: any) => {
         const ableName = able.name;
