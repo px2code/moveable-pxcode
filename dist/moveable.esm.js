@@ -11375,11 +11375,13 @@ function getAbleGesto(moveable, target, ableType, eventAffix, conditionFunctions
     conditionFunctions = {};
   }
 
+  var iframe = document.querySelector("iframe[px-code-frame]");
+  var contentWindow = iframe.contentWindow;
   var _a = moveable.props,
       pinchOutside = _a.pinchOutside,
       pinchThreshold = _a.pinchThreshold;
   var options = {
-    container: window,
+    container: contentWindow,
     pinchThreshold: pinchThreshold,
     pinchOutside: pinchOutside
   };
