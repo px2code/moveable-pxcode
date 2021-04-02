@@ -154,12 +154,14 @@ export function getAbleGesto(
     eventAffix: string,
     conditionFunctions: IObject<any> = {},
 ) {
+    const iframe =  document.querySelector("iframe[px-code-frame]") as HTMLIFrameElement;
+    const contentWindow = iframe.contentWindow;
     const {
         pinchOutside,
         pinchThreshold,
     } = moveable.props;
     const options: IObject<any> = {
-        container: window,
+        container: contentWindow,
         pinchThreshold,
         pinchOutside,
     };
