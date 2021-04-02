@@ -13053,11 +13053,13 @@ function (_super) {
     });
     var selectorMap = isReset ? {} : this.selectorMap;
     var nextSelectorMap = {};
+    var iframe = document.querySelector("iframe[px-code-frame]");
+    var contentDocument = iframe.contentDocument;
     this.refTargets.forEach(function (target) {
       if (utils.isString(target)) {
         if (!selectorMap[target]) {
           isUpdate = true;
-          nextSelectorMap[target] = [].slice.call(document.querySelectorAll(target));
+          nextSelectorMap[target] = [].slice.call(contentDocument.querySelectorAll(target));
         } else {
           nextSelectorMap[target] = selectorMap[target];
         }

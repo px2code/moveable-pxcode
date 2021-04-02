@@ -113,11 +113,13 @@ export class InitialMoveable<T = {}>
         });
         const selectorMap = isReset ? {} : this.selectorMap;
         const nextSelectorMap: IObject<Array<HTMLElement | SVGElement>> = {};
+        const iframe =  document.querySelector("iframe[px-code-frame]") as HTMLIFrameElement;
+        const contentDocument = iframe.contentDocument;
         this.refTargets.forEach(target => {
             if (isString(target)) {
                 if (!selectorMap[target]) {
                     isUpdate = true;
-                    nextSelectorMap[target] = [].slice.call(document.querySelectorAll(target));
+                    nextSelectorMap[target] = [].slice.call(contentDocument!.querySelectorAll(target));
                 } else {
                     nextSelectorMap[target] = selectorMap[target];
                 }
