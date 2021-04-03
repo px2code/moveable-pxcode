@@ -39,7 +39,7 @@ export const MOVEABLE_CSS = `
 	left: 0;
 	top: 0;
     z-index: 3000;
-    --moveable-color: #4af;
+    --moveable-color: #d66;
     --zoom: 1;
     --zoompx: 1px;
     will-change: transform;
@@ -59,7 +59,7 @@ export const MOVEABLE_CSS = `
 	border-radius: 50%;
 	border: 2px solid #fff;
 	box-sizing: border-box;
-    background: #4af;
+    background: #d66;
     background: var(--moveable-color);
 	margin-top: -7px;
     margin-left: -7px;
@@ -77,7 +77,7 @@ export const MOVEABLE_CSS = `
 .line {
 	width: 1px;
     height: 1px;
-    background: #4af;
+    background: #d66;
     background: var(--moveable-color);
 	transform-origin: 0px 50%;
 }
@@ -86,13 +86,13 @@ export const MOVEABLE_CSS = `
     background: transparent;
 }
 .line.dashed.horizontal {
-    border-top: 1px dashed #4af;
-    border-top-color: #4af;
+    border-top: 1px dashed #d66;
+    border-top-color: #d66;
     border-top-color: var(--moveable-color);
 }
 .line.dashed.vertical {
-    border-left: 1px dashed #4af;
-    border-left-color: #4af;
+    border-left: 1px dashed #d66;
+    border-left-color: #d66;
     border-left-color: var(--moveable-color);
 }
 .line.vertical {
