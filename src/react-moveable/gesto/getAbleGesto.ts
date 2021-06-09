@@ -162,6 +162,7 @@ export function getAbleGesto(
     } = moveable.props;
     const options: IObject<any> = {
         container: contentWindow,
+        preventDefault: false,
         pinchThreshold,
         pinchOutside,
     };

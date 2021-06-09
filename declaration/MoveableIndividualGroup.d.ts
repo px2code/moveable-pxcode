@@ -1,4 +1,3 @@
-/// <reference types="react" />
 import MoveableManager from "./MoveableManager";
 import { GroupableProps, RectInfo } from "./types";
 declare class MoveableIndividualGroup extends MoveableManager<GroupableProps> {

@@ -40,13 +40,14 @@ var extendStatics = function (d, b) {
   } instanceof Array && function (d, b) {
     d.__proto__ = b;
   } || function (d, b) {
-    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
+    for (var p in b) if (Object.prototype.hasOwnProperty.call(b, p)) d[p] = b[p];
   };
 
   return extendStatics(d, b);
 };
 
 function __extends(d, b) {
+  if (typeof b !== "function" && b !== null) throw new TypeError("Class extends value " + String(b) + " is not a constructor or null");
   extendStatics(d, b);
 
   function __() {
@@ -85,6 +86,8 @@ function __decorate(decorators, target, key, desc) {
   if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
   return c > 3 && r && Object.defineProperty(target, key, r), r;
 }
+/** @deprecated */
+
 function __spreadArrays() {
   for (var s = 0, i = 0, il = arguments.length; i < il; i++) s += arguments[i].length;
 
@@ -11382,6 +11385,7 @@ function getAbleGesto(moveable, target, ableType, eventAffix, conditionFunctions
       pinchThreshold = _a.pinchThreshold;
   var options = {
     container: contentWindow,
+    preventDefault: false,
     pinchThreshold: pinchThreshold,
     pinchOutside: pinchOutside
   };
