@@ -27,6 +27,7 @@ declare class MoveableGroup extends MoveableManager<GroupableProps> {
         edge: boolean;
         ables: import("./types").Able<import("@daybrush/utils").IObject<any>, import("@daybrush/utils").IObject<any>>[];
         className: string;
+        iframeSelector: string;
         pinchThreshold: number;
         pinchOutside: boolean;
         triggerAblesSimultaneously: boolean;

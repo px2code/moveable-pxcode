@@ -9,7 +9,7 @@ version: 0.27.5
 import getAgent from '@egjs/agent';
 import { prefixNames, ref, refs, withMethods, prefixCSS } from 'framework-utils';
 import { getShapeDirection, getRad, hasClass, isUndefined, isObject, isString, isFunction, isArray, splitBracket, splitUnit, splitSpace, average, find, findIndex, convertUnitSize, calculateBoundSize, getDist as getDist$1, dot, addClass, removeClass, splitComma, getKeys } from '@daybrush/utils';
-import { plus, calculate, convertPositionMatrix, convertMatrixtoCSS, invert, createIdentityMatrix, multiplies, createOriginMatrix, convertDimension, multiply, ignoreDimension, minus, convertCSStoMatrix, createScaleMatrix, getOrigin, fromTranslation, rotate, createRotateMatrix, createWarpMatrix } from '@scena/matrix';
+import { plus, calculate, convertPositionMatrix, convertMatrixtoCSS, invert, createIdentityMatrix, multiplies, createOriginMatrix, minus, convertDimension, multiply, ignoreDimension, getOrigin, convertCSStoMatrix, createScaleMatrix, fromTranslation, rotate, createRotateMatrix, createWarpMatrix } from '@scena/matrix';
 import { toMat, parse, parseMat } from 'css-to-mat';
 import { getMinMaxs, fitPoints, getOverlapSize, getAreaSize, isInside } from 'overlap-area';
 import ChildrenDiffer, { diff } from '@egjs/children-differ';
@@ -40,14 +40,13 @@ var extendStatics = function (d, b) {
   } instanceof Array && function (d, b) {
     d.__proto__ = b;
   } || function (d, b) {
-    for (var p in b) if (Object.prototype.hasOwnProperty.call(b, p)) d[p] = b[p];
+    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
   };
 
   return extendStatics(d, b);
 };
 
 function __extends(d, b) {
-  if (typeof b !== "function" && b !== null) throw new TypeError("Class extends value " + String(b) + " is not a constructor or null");
   extendStatics(d, b);
 
   function __() {
@@ -86,8 +85,6 @@ function __decorate(decorators, target, key, desc) {
   if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
   return c > 3 && r && Object.defineProperty(target, key, r), r;
 }
-/** @deprecated */
-
 function __spreadArrays() {
   for (var s = 0, i = 0, il = arguments.length; i < il; i++) s += arguments[i].length;
 
@@ -1814,9 +1811,7 @@ function setCustomDrag(e, state, delta, isPinch, isConvert) {
   });
 }
 
-var CustomGesto =
-/*#__PURE__*/
-function () {
+var CustomGesto = function () {
   function CustomGesto() {
     this.prevX = 0;
     this.prevY = 0;
@@ -11371,14 +11366,18 @@ function getTargetAbleGesto(moveable, moveableTarget, eventAffix) {
   return getAbleGesto(moveable, targets, "targetAbles", eventAffix, {
     dragStart: startFunc,
     pinchStart: startFunc
-  });
+  }, moveable.props.iframeSelector);
 }
-function getAbleGesto(moveable, target, ableType, eventAffix, conditionFunctions) {
+function getAbleGesto(moveable, target, ableType, eventAffix, conditionFunctions, iframeSelector) {
   if (conditionFunctions === void 0) {
     conditionFunctions = {};
   }
 
-  var iframe = document.querySelector("iframe[px-code-frame]");
+  if (iframeSelector === void 0) {
+    iframeSelector = "iframe[px-code-frame]";
+  }
+
+  var iframe = document.querySelector(iframeSelector);
   var contentWindow = iframe.contentWindow;
   var _a = moveable.props,
       pinchOutside = _a.pinchOutside,
@@ -11387,7 +11386,8 @@ function getAbleGesto(moveable, target, ableType, eventAffix, conditionFunctions
     container: contentWindow,
     preventDefault: false,
     pinchThreshold: pinchThreshold,
-    pinchOutside: pinchOutside
+    pinchOutside: pinchOutside,
+    iframeSelector: iframeSelector
   };
   var gesto = new Gesto(target, options);
   ["drag", "pinch"].forEach(function (eventOperation) {
@@ -11411,9 +11411,7 @@ function getAbleGesto(moveable, target, ableType, eventAffix, conditionFunctions
   return gesto;
 }
 
-var EventManager =
-/*#__PURE__*/
-function () {
+var EventManager = function () {
   function EventManager(target, moveable, eventName) {
     var _this = this;
 
@@ -11451,9 +11449,7 @@ function () {
   return EventManager;
 }();
 
-var MoveableManager =
-/*#__PURE__*/
-function (_super) {
+var MoveableManager = function (_super) {
   __extends(MoveableManager, _super);
 
   function MoveableManager() {
@@ -12102,7 +12098,7 @@ function (_super) {
     var key = tag + css;
 
     if (!customStyleMap[key]) {
-      customStyleMap[key] = styled(tag, css);
+      customStyleMap[key] = styled(tag, css, this.props.iframeSelector);
     }
 
     return customStyleMap[key];
@@ -12210,6 +12206,7 @@ function (_super) {
     transformOrigin: "",
     className: "",
     zoom: 1,
+    iframeSelector: "iframe[px-code-frame]",
     triggerAblesSimultaneously: false,
     padding: {},
     pinchOutside: true,
@@ -12425,8 +12422,8 @@ var Clickable = {
 
     if (!inputEvent || !inputTarget || e.isDrag || moveable.isMoveableElement(inputTarget) // External event duplicate target or dragAreaElement
     ) {
-        return;
-      }
+      return;
+    }
 
     var containsTarget = target.contains(inputTarget);
     triggerEvent(moveable, "onClick", fillParams(moveable, e, {
@@ -12684,9 +12681,7 @@ function getGroupRect(moveables, rotation) {
  */
 
 
-var MoveableGroup =
-/*#__PURE__*/
-function (_super) {
+var MoveableGroup = function (_super) {
   __extends(MoveableGroup, _super);
 
   function MoveableGroup() {
@@ -12716,7 +12711,7 @@ function (_super) {
       state.target = this.areaElement;
       this.controlBox.getElement().style.display = "block";
       this.targetGesto = getTargetAbleGesto(this, nextTarget, "Group");
-      this.controlGesto = getAbleGesto(this, this.controlBox.getElement(), "controlAbles", "GroupControl");
+      this.controlGesto = getAbleGesto(this, this.controlBox.getElement(), "controlAbles", "GroupControl", {}, this.props.iframeSelector);
     }
 
     var isContainerChanged = !equals(prevProps.container, props.container);
@@ -12845,9 +12840,7 @@ function (_super) {
  * @description Create targets individually, not as a group.Create targets individually, not as a group.
  */
 
-var MoveableIndividualGroup =
-/*#__PURE__*/
-function (_super) {
+var MoveableIndividualGroup = function (_super) {
   __extends(MoveableIndividualGroup, _super);
 
   function MoveableIndividualGroup() {
@@ -12941,9 +12934,7 @@ function (_super) {
   return MoveableIndividualGroup;
 }(MoveableManager);
 
-var InitialMoveable =
-/*#__PURE__*/
-function (_super) {
+var InitialMoveable = function (_super) {
   __extends(InitialMoveable, _super);
 
   function InitialMoveable() {
@@ -12956,7 +12947,7 @@ function (_super) {
 
   var __proto = InitialMoveable.prototype;
 
-  InitialMoveable.makeStyled = function () {
+  InitialMoveable.makeStyled = function (iframeSelector) {
     var cssMap = {};
     var ables = this.getTotalAbles();
     ables.forEach(function (_a) {
@@ -12971,7 +12962,7 @@ function (_super) {
       });
     });
     var style = getKeys(cssMap).join("\n");
-    this.defaultStyled = styled("div", prefixCSS(PREFIX, MOVEABLE_CSS + style));
+    this.defaultStyled = styled("div", prefixCSS(PREFIX, MOVEABLE_CSS + style), iframeSelector);
   };
 
   InitialMoveable.getTotalAbles = function () {
@@ -12982,7 +12973,7 @@ function (_super) {
     var moveableContructor = this.constructor;
 
     if (!moveableContructor.defaultStyled) {
-      moveableContructor.makeStyled();
+      moveableContructor.makeStyled(this.props.iframeSelector);
     }
 
     var _a = this.props,
@@ -13087,9 +13078,7 @@ function (_super) {
   return InitialMoveable;
 }(PureComponent);
 
-var Moveable =
-/*#__PURE__*/
-function (_super) {
+var Moveable = function (_super) {
   __extends(Moveable, _super);
 
   function Moveable() {
@@ -13103,9 +13092,7 @@ function (_super) {
 function makeMoveable(ables) {
   var _a;
 
-  return _a =
-  /*#__PURE__*/
-  function (_super) {
+  return _a = function (_super) {
     __extends(Moveable, _super);
 
     function Moveable() {

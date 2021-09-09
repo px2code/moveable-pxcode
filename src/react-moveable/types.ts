@@ -60,6 +60,7 @@ export interface DefaultOptions {
     edge?: boolean;
     ables?: Able[];
     className?: string;
+    iframeSelector: string;
     pinchThreshold?: number;
     pinchOutside?: boolean;
     triggerAblesSimultaneously?: boolean;

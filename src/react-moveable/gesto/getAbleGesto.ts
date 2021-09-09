@@ -1,7 +1,7 @@
 import { Able, MoveableManagerInterface, MoveableGroupInterface } from "../types";
 import { hasClass, IObject } from "@daybrush/utils";
 import { convertDragDist } from "../utils";
-import Gesto from "gesto";
+import Gesto, {GestoOptions} from "gesto";
 import BeforeRenderable from "../ables/BeforeRenderable";
 import Renderable from "../ables/Renderable";
 
@@ -145,7 +145,7 @@ export function getTargetAbleGesto(
     return getAbleGesto(moveable, targets, "targetAbles", eventAffix, {
         dragStart: startFunc,
         pinchStart: startFunc,
-    });
+    }, moveable.props.iframeSelector);
 }
 export function getAbleGesto(
     moveable: MoveableManagerInterface,
@@ -153,18 +153,20 @@ export function getAbleGesto(
     ableType: string,
     eventAffix: string,
     conditionFunctions: IObject<any> = {},
+    iframeSelector: string = "iframe[px-code-frame]"
 ) {
-    const iframe =  document.querySelector("iframe[px-code-frame]") as HTMLIFrameElement;
+    const iframe =  document.querySelector(iframeSelector) as HTMLIFrameElement;
     const contentWindow = iframe.contentWindow;
     const {
         pinchOutside,
         pinchThreshold,
     } = moveable.props;
-    const options: IObject<any> = {
-        container: contentWindow,
+    const options: GestoOptions = {
+        container: contentWindow as Window,
         preventDefault: false,
         pinchThreshold,
         pinchOutside,
+        iframeSelector
     };
     const gesto = new Gesto(target!, options);
 

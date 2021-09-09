@@ -22,7 +22,7 @@ export class InitialMoveable<T = {}>
     public static defaultAbles: Able[] = [];
     public static customStyledMap: Record<string, any> = {};
     public static defaultStyled: any = null;
-    public static makeStyled() {
+    public static makeStyled(iframeSelector: string) {
         const cssMap: IObject<boolean> = {};
 
         const ables = this.getTotalAbles();
@@ -36,7 +36,7 @@ export class InitialMoveable<T = {}>
         });
         const style = getKeys(cssMap).join("\n");
 
-        this.defaultStyled = styled("div", prefixCSS(PREFIX, MOVEABLE_CSS + style));
+        this.defaultStyled = styled("div", prefixCSS(PREFIX, MOVEABLE_CSS + style), iframeSelector);
     }
     public static getTotalAbles(): Able[] {
 
@@ -50,7 +50,7 @@ export class InitialMoveable<T = {}>
         const moveableContructor = (this.constructor as typeof InitialMoveable);
 
         if (!moveableContructor.defaultStyled) {
-            moveableContructor.makeStyled();
+            moveableContructor.makeStyled(this.props.iframeSelector);
         }
         const {
             ables: userAbles,

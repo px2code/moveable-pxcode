@@ -8,7 +8,7 @@ export declare class InitialMoveable<T = {}> extends React.PureComponent<Moveabl
     static defaultAbles: Able[];
     static customStyledMap: Record<string, any>;
     static defaultStyled: any;
-    static makeStyled(): void;
+    static makeStyled(iframeSelector: string): void;
     static getTotalAbles(): Able[];
     moveable: MoveableManager | MoveableGroup | MoveableIndividualGroup;
     refTargets: Array<HTMLElement | SVGElement | string | undefined | null>;

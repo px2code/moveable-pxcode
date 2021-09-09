@@ -47,6 +47,7 @@ export default class MoveableManager<T = {}>
         transformOrigin: "",
         className: "",
         zoom: 1,
+        iframeSelector: "iframe[px-code-frame]",
         triggerAblesSimultaneously: false,
         padding: {},
         pinchOutside: true,
@@ -645,7 +646,7 @@ export default class MoveableManager<T = {}>
         const key = tag + css;
 
         if (!customStyleMap[key]) {
-            customStyleMap[key] = styled(tag, css);
+            customStyleMap[key] = styled(tag, css, this.props.iframeSelector);
         }
         return customStyleMap[key];
     }

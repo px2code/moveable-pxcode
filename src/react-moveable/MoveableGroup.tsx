@@ -125,7 +125,7 @@ class MoveableGroup extends MoveableManager<GroupableProps> {
 
             this.controlBox.getElement().style.display = "block";
             this.targetGesto = getTargetAbleGesto(this, nextTarget, "Group");
-            this.controlGesto = getAbleGesto(this, this.controlBox.getElement(), "controlAbles", "GroupControl");
+            this.controlGesto = getAbleGesto(this, this.controlBox.getElement(), "controlAbles", "GroupControl", {}, this.props.iframeSelector);
         }
         const isContainerChanged = !equals(prevProps.container, props.container);
 
