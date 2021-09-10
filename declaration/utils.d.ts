@@ -8,14 +8,14 @@ export declare function createIdentityMatrix3(): number[];
 export declare function getTransformMatrix(transform: string | number[]): number[];
 export declare function getAbsoluteMatrix(matrix: number[], n: number, origin: number[]): number[];
 export declare function measureSVGSize(el: SVGElement, unit: string, isHorizontal: boolean): number;
-export declare function getBeforeTransformOrigin(el: SVGElement): number[];
+export declare function getBeforeTransformOrigin(el: SVGElement, iframeSelector: string): number[];
 export declare function getTransformOrigin(style: CSSStyleDeclaration): string[];
-export declare function getOffsetInfo(el: SVGElement | HTMLElement | null | undefined, lastParent: SVGElement | HTMLElement | null | undefined, isParent?: boolean): {
+export declare function getOffsetInfo(el: SVGElement | HTMLElement | null | undefined, lastParent: SVGElement | HTMLElement | null | undefined, iframeSelector: string, isParent?: boolean): {
     isStatic: boolean;
     isEnd: boolean;
     offsetParent: HTMLElement;
 };
-export declare function getOffsetPosInfo(el: HTMLElement | SVGElement, container: SVGElement | HTMLElement | null | undefined, style: CSSStyleDeclaration, isFixed: boolean): {
+export declare function getOffsetPosInfo(el: HTMLElement | SVGElement, container: SVGElement | HTMLElement | null | undefined, style: CSSStyleDeclaration, isFixed: boolean, iframeSelector: string): {
     tagName: string;
     isSVG: boolean;
     hasOffset: boolean;
@@ -23,8 +23,8 @@ export declare function getOffsetPosInfo(el: HTMLElement | SVGElement, container
     origin: number[];
     targetOrigin: number[];
 };
-export declare function getBodyOffset(el: HTMLElement | SVGElement, isSVG: boolean, style?: CSSStyleDeclaration): number[];
-export declare function getMatrixStackInfo(target: SVGElement | HTMLElement, container?: SVGElement | HTMLElement | null): {
+export declare function getBodyOffset(el: HTMLElement | SVGElement, iframeSelector: string, isSVG: boolean, style?: CSSStyleDeclaration): number[];
+export declare function getMatrixStackInfo(target: SVGElement | HTMLElement, iframeSelector: string, container?: SVGElement | HTMLElement | null): {
     offsetContainer: HTMLElement;
     matrixes: number[][];
     targetMatrix: number[];
@@ -32,7 +32,7 @@ export declare function getMatrixStackInfo(target: SVGElement | HTMLElement, con
     targetOrigin: number[];
     is3d: boolean;
 };
-export declare function calculateElementInfo(target?: SVGElement | HTMLElement | null, container?: SVGElement | HTMLElement | null, rootContainer?: HTMLElement | SVGElement | null | undefined, isAbsolute3d?: boolean): {
+export declare function calculateElementInfo(iframeSelector: string, target?: SVGElement | HTMLElement | null, container?: SVGElement | HTMLElement | null, rootContainer?: HTMLElement | SVGElement | null | undefined, isAbsolute3d?: boolean): {
     width: number;
     height: number;
     rotation: number;
@@ -56,7 +56,7 @@ export declare function calculateElementInfo(target?: SVGElement | HTMLElement |
     pos4: number[];
     direction: number;
 };
-export declare function getElementInfo(target: SVGElement | HTMLElement, container?: SVGElement | HTMLElement | null, rootContainer?: SVGElement | HTMLElement | null | undefined): {
+export declare function getElementInfo(target: SVGElement | HTMLElement, iframeSelector: string, container?: SVGElement | HTMLElement | null, rootContainer?: SVGElement | HTMLElement | null | undefined): {
     width: number;
     height: number;
     rotation: number;
@@ -80,7 +80,7 @@ export declare function getElementInfo(target: SVGElement | HTMLElement, contain
     pos4: number[];
     direction: number;
 };
-export declare function calculateMatrixStack(target: SVGElement | HTMLElement, container?: SVGElement | HTMLElement | null, rootContainer?: SVGElement | HTMLElement | null | undefined, isAbsolute3d?: boolean): {
+export declare function calculateMatrixStack(target: SVGElement | HTMLElement, iframeSelector: string, container?: SVGElement | HTMLElement | null, rootContainer?: SVGElement | HTMLElement | null | undefined, isAbsolute3d?: boolean): {
     rootMatrix: number[];
     beforeMatrix: number[];
     offsetMatrix: number[];
@@ -120,7 +120,7 @@ export declare function calculateRect(matrix: number[], width: number, height: n
     width: number;
     height: number;
 };
-export declare function getSVGOffset(el: SVGElement, container: HTMLElement | SVGElement, n: number, origin: number[], beforeMatrix: number[], absoluteMatrix: number[]): number[];
+export declare function getSVGOffset(el: SVGElement, container: HTMLElement | SVGElement, n: number, origin: number[], beforeMatrix: number[], absoluteMatrix: number[], iframeSelector: string): number[];
 export declare function calculateMoveablePosition(matrix: number[], origin: number[], width: number, height: number): {
     left: number;
     top: number;
@@ -142,10 +142,10 @@ export declare function getLineStyle(pos1: number[], pos2: number[], zoom?: numb
 export declare function getControlTransform(rotation: number, zoom: number, ...poses: number[][]): {
     transform: string;
 };
-export declare function getCSSSize(target: SVGElement | HTMLElement): number[];
-export declare function getSize(target: SVGElement | HTMLElement, style?: CSSStyleDeclaration, isOffset?: boolean, isBoxSizing?: boolean): number[];
+export declare function getCSSSize(target: SVGElement | HTMLElement, iframeSelector: string): number[];
+export declare function getSize(target: SVGElement | HTMLElement, iframeSelector: string, style?: CSSStyleDeclaration, isOffset?: boolean, isBoxSizing?: boolean): number[];
 export declare function getRotationRad(poses: number[][], direction: number): number;
-export declare function getTargetInfo(moveableElement?: HTMLElement | null, target?: HTMLElement | SVGElement | null, container?: HTMLElement | SVGElement | null, parentContainer?: HTMLElement | SVGElement | null, rootContainer?: HTMLElement | SVGElement | null): {
+export declare function getTargetInfo(iframeSelector: string, moveableElement?: HTMLElement | null, target?: HTMLElement | SVGElement | null, container?: HTMLElement | SVGElement | null, parentContainer?: HTMLElement | SVGElement | null, rootContainer?: HTMLElement | SVGElement | null): {
     width: number;
     height: number;
     rotation: number;
@@ -177,7 +177,7 @@ export declare function getTargetInfo(moveableElement?: HTMLElement | null, targ
     target: SVGElement | HTMLElement | null | undefined;
 };
 export declare function resetClientRect(): MoveableClientRect;
-export declare function getClientRect(el: HTMLElement | SVGElement, isExtends?: boolean): MoveableClientRect;
+export declare function getClientRect(el: HTMLElement | SVGElement, iframeSelector: string, isExtends?: boolean): MoveableClientRect;
 export declare function getDirection(target: SVGElement | HTMLElement): number[] | undefined;
 export declare function getAbsolutePoses(poses: number[][], dist: number[]): number[][];
 export declare function getAbsolutePosesByState({ left, top, pos1, pos2, pos3, pos4, }: {
@@ -197,7 +197,7 @@ export declare function fillEndParams<T extends IObject<any>>(moveable: any, e: 
     isDrag?: boolean;
 }): T;
 export declare function triggerEvent<T extends IObject<any> = MoveableProps, U extends keyof T = string>(moveable: any, name: U, params: T[U] extends ((e: infer P) => any) | undefined ? P : IObject<any>, isManager?: boolean): any;
-export declare function getComputedStyle(el: HTMLElement | SVGElement, pseudoElt?: string | null): CSSStyleDeclaration;
+export declare function getComputedStyle(el: HTMLElement | SVGElement, iframeSelector: string, pseudoElt?: string | null): CSSStyleDeclaration;
 export declare function filterAbles(ables: Able[], methods: Array<keyof Able>, triggerAblesSimultaneously?: boolean): Able<IObject<any>, IObject<any>>[];
 export declare function equals(a1: any, a2: any): boolean;
 export declare function selectValue<T = any>(...values: any[]): T;
@@ -235,10 +235,10 @@ export declare function getTransform(transforms: string[], index: number): {
     afterFunctionTexts2: string[];
 };
 export declare function isArrayFormat<T = any>(arr: any): arr is ArrayFormat<T>;
-export declare function getRefTarget<T extends HTMLElement | SVGElement = HTMLElement | SVGElement>(target: MoveableRefType<T>, isSelector: true): T | null;
-export declare function getRefTarget<T extends HTMLElement | SVGElement = HTMLElement | SVGElement>(target: MoveableRefType<T>, isSelector?: boolean): T | string | null;
-export declare function getRefTargets(targets: MoveableRefType | ArrayFormat<MoveableRefType>, isSelector: true): Array<HTMLElement | SVGElement | null>;
-export declare function getRefTargets(targets: MoveableRefType | ArrayFormat<MoveableRefType>, isSelector?: boolean): Array<HTMLElement | SVGElement | string | null>;
+export declare function getRefTarget<T extends HTMLElement | SVGElement = HTMLElement | SVGElement>(target: MoveableRefType<T>, iframeSelector: string, isSelector: true): T | null;
+export declare function getRefTarget<T extends HTMLElement | SVGElement = HTMLElement | SVGElement>(target: MoveableRefType<T>, iframeSelector: string, isSelector?: boolean): T | string | null;
+export declare function getRefTargets(targets: MoveableRefType | ArrayFormat<MoveableRefType>, iframeSelector: string, isSelector: true): Array<HTMLElement | SVGElement | null>;
+export declare function getRefTargets(targets: MoveableRefType | ArrayFormat<MoveableRefType>, iframeSelector: string, isSelector?: boolean): Array<HTMLElement | SVGElement | string | null>;
 export declare function getElementTargets(targets: Array<SVGElement | HTMLElement | string | null | undefined>, selectorMap: IObject<Array<HTMLElement | SVGElement>>): (SVGElement | HTMLElement)[];
 export declare function minmax(...values: number[]): number[];
 export declare function getAbsoluteRotation(pos1: number[], pos2: number[], direction: number): number;

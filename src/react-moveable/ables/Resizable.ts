@@ -92,7 +92,7 @@ export default {
         [
             datas.startWidth,
             datas.startHeight,
-        ] = getCSSSize(target);
+        ] = getCSSSize(target, moveable.props.iframeSelector);
         const padding = [Math.max(0, width - datas.startWidth), Math.max(0, height - datas.startHeight)];
         datas.minSize = padding;
         datas.maxSize = [Infinity, Infinity];

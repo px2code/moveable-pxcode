@@ -57,7 +57,7 @@ export class InitialMoveable<T = {}>
             props: userProps,
             ...props
         } = this.props;
-        const refTargets = getRefTargets((props.target || props.targets) as any);
+        const refTargets = getRefTargets((props.target || props.targets) as any, this.props.iframeSelector);
         const elementTargets = getElementTargets(refTargets, this.selectorMap);
 
         this.refTargets = refTargets;
@@ -100,7 +100,7 @@ export class InitialMoveable<T = {}>
         this.updateRefs();
     }
     public updateRefs(isReset?: boolean) {
-        const refTargets = getRefTargets((this.props.target || this.props.targets) as any);
+        const refTargets = getRefTargets((this.props.target || this.props.targets) as any, this.props.iframeSelector);
         let isUpdate = this.refTargets.some((target, i) => {
             const nextTarget = refTargets[i];
 
@@ -113,7 +113,7 @@ export class InitialMoveable<T = {}>
         });
         const selectorMap = isReset ? {} : this.selectorMap;
         const nextSelectorMap: IObject<Array<HTMLElement | SVGElement>> = {};
-        const iframe =  document.querySelector("iframe[px-code-frame]") as HTMLIFrameElement;
+        const iframe =  document.querySelector(this.props.iframeSelector) as HTMLIFrameElement;
         const contentDocument = iframe.contentDocument;
         this.refTargets.forEach(target => {
             if (isString(target)) {

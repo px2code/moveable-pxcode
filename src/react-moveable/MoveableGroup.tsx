@@ -174,11 +174,12 @@ class MoveableGroup extends MoveableManager<GroupableProps> {
 
         const container = this.getContainer();
         const info = getTargetInfo(
+            this.props.iframeSelector,
             this.controlBox.getElement(),
             target,
             this.controlBox.getElement(),
             this.getContainer(),
-            this.props.rootContainer || container,
+            this.props.rootContainer || container
             // state,
         );
         const pos = [info.left!, info.top!];

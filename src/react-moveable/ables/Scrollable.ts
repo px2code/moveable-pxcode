@@ -35,7 +35,7 @@ export default {
         } = props;
 
         const dragScroll = new DragScroll();
-        const scrollContainerElement = getRefTarget<HTMLElement>(scrollContainer, true);
+        const scrollContainerElement = getRefTarget<HTMLElement>(scrollContainer, moveable.props.iframeSelector, true);
 
         e.datas.dragScroll = dragScroll;
 

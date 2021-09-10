@@ -64,8 +64,8 @@ export function measureSVGSize(el: SVGElement, unit: string, isHorizontal: boole
     }
     return 1;
 }
-export function getBeforeTransformOrigin(el: SVGElement) {
-    const relativeOrigin = getTransformOrigin(getComputedStyle(el, ":before"));
+export function getBeforeTransformOrigin(el: SVGElement, iframeSelector: string) {
+    const relativeOrigin = getTransformOrigin(getComputedStyle(el, ":before", iframeSelector));
 
     return relativeOrigin.map((o, i) => {
         const { value, unit } = splitUnit(o);
@@ -81,9 +81,10 @@ export function getTransformOrigin(style: CSSStyleDeclaration) {
 export function getOffsetInfo(
     el: SVGElement | HTMLElement | null | undefined,
     lastParent: SVGElement | HTMLElement | null | undefined,
+    iframeSelector: string,
     isParent?: boolean,
 ) {
-    const iframe =  document.querySelector("iframe[px-code-frame]") as HTMLIFrameElement;
+    const iframe =  document.querySelector(iframeSelector) as HTMLIFrameElement;
     const contentDocument = iframe.contentDocument;
     const body = contentDocument!.body;
     let target = !el || isParent ? el : el.parentElement;
@@ -94,7 +95,7 @@ export function getOffsetInfo(
         if (lastParent === target) {
             isEnd = true;
         }
-        const style = getComputedStyle(target);
+        const style = getComputedStyle(target, iframeSelector);
         const transform = style.transform;
         position = style.position!;
 
@@ -116,13 +117,14 @@ export function getOffsetPosInfo(
     container: SVGElement | HTMLElement | null | undefined,
     style: CSSStyleDeclaration,
     isFixed: boolean,
+    iframeSelector: string
 ) {
     const tagName = el.tagName.toLowerCase();
     let offsetLeft = (el as HTMLElement).offsetLeft;
     let offsetTop = (el as HTMLElement).offsetTop;
 
     if (isFixed) {
-        const iframe =  document.querySelector("iframe[px-code-frame]") as HTMLIFrameElement;
+        const iframe =  document.querySelector(iframeSelector) as HTMLIFrameElement;
         const contentDocument = iframe.contentDocument;
         const containerClientRect = (container || contentDocument!.documentElement).getBoundingClientRect();
 
@@ -137,7 +139,7 @@ export function getOffsetPosInfo(
     // inner svg element
     if (!hasOffset && tagName !== "svg") {
         origin = IS_WEBKIT605
-            ? getBeforeTransformOrigin(el as SVGElement)
+            ? getBeforeTransformOrigin(el as SVGElement, iframeSelector)
             : getTransformOrigin(style).map(pos => parseFloat(pos));
 
         targetOrigin = origin.slice();
@@ -161,19 +163,20 @@ export function getOffsetPosInfo(
 }
 export function getBodyOffset(
     el: HTMLElement| SVGElement,
+    iframeSelector: string,
     isSVG: boolean,
-    style: CSSStyleDeclaration = getComputedStyle(el),
+    style: CSSStyleDeclaration = getComputedStyle(el, iframeSelector),
 ) {
-    const iframe =  document.querySelector("iframe[px-code-frame]") as HTMLIFrameElement;
+    const iframe =  document.querySelector(iframeSelector) as HTMLIFrameElement;
     const contentDocument = iframe.contentDocument;
-    const bodyStyle = getComputedStyle(contentDocument!.body);
+    const bodyStyle = getComputedStyle(contentDocument!.body, iframeSelector);
     const bodyPosition = bodyStyle.position;
     if (!isSVG && (!bodyPosition || bodyPosition === "static")) {
         return [0, 0];
     }
 
-    let marginLeft = parseInt(bodyStyle.marginLeft, 10);
-    let marginTop = parseInt(bodyStyle.marginTop, 10);
+    let marginLeft = parseInt(`${bodyStyle.marginLeft}`, 10);
+    let marginTop = parseInt(`${bodyStyle.marginTop}`, 10);
 
     if (style.position === "absolute") {
         if (style.top !== "auto" || style.bottom !== "auto") {
@@ -188,6 +191,7 @@ export function getBodyOffset(
 }
 export function getMatrixStackInfo(
     target: SVGElement | HTMLElement,
+    iframeSelector: string,
     container?: SVGElement | HTMLElement | null,
     // prevMatrix?: number[],
 ) {
@@ -200,7 +204,7 @@ export function getMatrixStackInfo(
     let targetTransformOrigin!: number[];
     let targetMatrix!: number[];
 
-    const offsetContainer = getOffsetInfo(container, container, true).offsetParent;
+    const offsetContainer = getOffsetInfo(container, container, iframeSelector).offsetParent;
 
     // if (prevMatrix) {
     //     isEnd = target === container;
@@ -212,7 +216,7 @@ export function getMatrixStackInfo(
     // }
 
     while (el && !isEnd) {
-        const style: CSSStyleDeclaration = getComputedStyle(el);
+        const style: CSSStyleDeclaration = getComputedStyle(el, iframeSelector);
         const position = style.position;
         const isFixed = position === "fixed";
         let matrix: number[] = convertCSStoMatrix(getTransformMatrix(style.transform!));
@@ -238,7 +242,7 @@ export function getMatrixStackInfo(
             origin,
             targetOrigin,
             offset: offsetPos,
-        } = getOffsetPosInfo(el, container, style, isFixed);
+        } = getOffsetPosInfo(el, container, style, isFixed, iframeSelector);
         let [
             offsetLeft,
             offsetTop,
@@ -257,7 +261,7 @@ export function getMatrixStackInfo(
             offsetParent,
             isEnd: isOffsetEnd,
             isStatic,
-        } = getOffsetInfo(el, container);
+        } = getOffsetInfo(el, container, iframeSelector);
 
         if (IS_WEBKIT && hasOffset && !isSVG && isStatic && (position === "relative" || position === "static")) {
             offsetLeft -= offsetParent.offsetLeft;
@@ -272,10 +276,10 @@ export function getMatrixStackInfo(
             parentClientLeft = offsetParent.clientLeft;
             parentClientTop = offsetParent.clientTop;
         }
-        const iframe =  document.querySelector("iframe[px-code-frame]") as HTMLIFrameElement;
+        const iframe =  document.querySelector(iframeSelector) as HTMLIFrameElement;
         const contentDocument = iframe.contentDocument;
         if (hasOffset && offsetParent === contentDocument!.body) {
-            const margin = getBodyOffset(el, false, style);
+            const margin = getBodyOffset(el, iframeSelector, false, style);
             offsetLeft += margin[0];
             offsetTop += margin[1];
         }
@@ -323,6 +327,7 @@ export function getMatrixStackInfo(
     };
 }
 export function calculateElementInfo(
+    iframeSelector: string,
     target?: SVGElement | HTMLElement | null,
     container?: SVGElement | HTMLElement | null,
     rootContainer: HTMLElement | SVGElement | null | undefined = container,
@@ -338,19 +343,19 @@ export function calculateElementInfo(
     let allResult: {} = {};
 
     if (target) {
-        const style = getComputedStyle(target);
+        const style = getComputedStyle(target, iframeSelector);
 
         width = (target as HTMLElement).offsetWidth;
         height = (target as HTMLElement).offsetHeight;
 
         if (isUndefined(width)) {
-            [width, height] = getSize(target, style, true);
+            [width, height] = getSize(target, iframeSelector, style, true);
         }
     }
 
     if (target) {
         const result = calculateMatrixStack(
-            target, container, rootContainer, isAbsolute3d,
+            target, iframeSelector, container, rootContainer, isAbsolute3d
             // prevMatrix, prevRootMatrix, prevN,
         );
         const position = calculateMoveablePosition(
@@ -415,13 +420,15 @@ export function calculateElementInfo(
 }
 export function getElementInfo(
     target: SVGElement | HTMLElement,
+    iframeSelector: string,
     container?: SVGElement | HTMLElement | null,
     rootContainer: SVGElement | HTMLElement | null | undefined = container,
 ) {
-    return calculateElementInfo(target, container, rootContainer, true);
+    return calculateElementInfo(iframeSelector, target, container, rootContainer, true);
 }
 export function calculateMatrixStack(
     target: SVGElement | HTMLElement,
+    iframeSelector: string,
     container?: SVGElement | HTMLElement | null,
     rootContainer: SVGElement | HTMLElement | null | undefined = container,
     isAbsolute3d?: boolean,
@@ -436,13 +443,13 @@ export function calculateMatrixStack(
         transformOrigin,
         targetOrigin,
         offsetContainer,
-    } = getMatrixStackInfo(target, container); // prevMatrix
+    } = getMatrixStackInfo(target, iframeSelector, container); // prevMatrix
     const {
         matrixes: rootMatrixes,
         is3d: isRoot3d,
-    } = getMatrixStackInfo(offsetContainer, rootContainer); // prevRootMatrix
+    } = getMatrixStackInfo(offsetContainer, iframeSelector, rootContainer); // prevRootMatrix
 
-    const iframe =  document.querySelector("iframe[px-code-frame]") as HTMLIFrameElement;
+    const iframe =  document.querySelector(iframeSelector) as HTMLIFrameElement;
     const contentDocument = iframe.contentDocument;
     // if (rootContainer === contentDocument!.body) {
     //     console.log(offsetContainer, rootContainer, rootMatrixes);
@@ -460,7 +467,7 @@ export function calculateMatrixStack(
     let beforeMatrix = createIdentityMatrix(n);
     let offsetMatrix = createIdentityMatrix(n);
     const length = matrixes.length;
-    const endContainer = getOffsetInfo(originalContainer, originalContainer, true).offsetParent;
+    const endContainer = getOffsetInfo(originalContainer, originalContainer, iframeSelector).offsetParent;
 
     rootMatrixes.reverse();
     matrixes.reverse();
@@ -506,6 +513,7 @@ export function calculateMatrixStack(
                     matrix[n * (n - 1) + 1] as any,
                     allMatrix,
                     matrixes[i + 1],
+                    iframeSelector
                 );
         }
         allMatrix = multiply(allMatrix, matrix, n);
@@ -656,16 +664,17 @@ export function calculateRect(matrix: number[], width: number, height: number, n
 export function getSVGOffset(
     el: SVGElement,
     container: HTMLElement | SVGElement,
-    n: number, origin: number[], beforeMatrix: number[], absoluteMatrix: number[]) {
+    n: number, origin: number[], beforeMatrix: number[], absoluteMatrix: number[],
+    iframeSelector: string) {
 
-    const [width, height] = getSize(el, undefined, true);
+    const [width, height] = getSize(el, iframeSelector, undefined, true);
     const containerClientRect = container.getBoundingClientRect();
     let margin = [0, 0];
 
-    const iframe =  document.querySelector("iframe[px-code-frame]") as HTMLIFrameElement;
+    const iframe =  document.querySelector(iframeSelector) as HTMLIFrameElement;
     const contentDocument = iframe.contentDocument;
     if (container === contentDocument!.body) {
-        margin = getBodyOffset(el, true);
+        margin = getBodyOffset(el, iframeSelector,true);
     }
     const rect = el.getBoundingClientRect();
     const rectLeft
@@ -794,8 +803,8 @@ export function getControlTransform(rotation: number, zoom: number, ...poses: nu
         transform: `translateZ(0px) translate(${x}px, ${y}px) rotate(${rotation}rad) scale(${zoom})`,
     };
 }
-export function getCSSSize(target: SVGElement | HTMLElement) {
-    const iframe =  document.querySelector("iframe[px-code-frame]") as HTMLIFrameElement;
+export function getCSSSize(target: SVGElement | HTMLElement, iframeSelector: string) {
+    const iframe =  document.querySelector(iframeSelector) as HTMLIFrameElement;
     const contentWindow = iframe.contentWindow;
     const style = contentWindow!.getComputedStyle(target);
 
@@ -806,7 +815,8 @@ export function getCSSSize(target: SVGElement | HTMLElement) {
 }
 export function getSize(
     target: SVGElement | HTMLElement,
-    style: CSSStyleDeclaration = getComputedStyle(target),
+    iframeSelector: string,
+    style: CSSStyleDeclaration = getComputedStyle(target, iframeSelector),
     isOffset?: boolean,
     isBoxSizing: boolean = isOffset || style.boxSizing === "border-box",
 ) {
@@ -854,6 +864,7 @@ export function getRotationRad(
     return getRad(direction > 0 ? poses[0] : poses[1], direction > 0 ? poses[1] : poses[0]);
 }
 export function getTargetInfo(
+    iframeSelector: string,
     moveableElement?: HTMLElement | null,
     target?: HTMLElement | SVGElement | null,
     container?: HTMLElement | SVGElement | null,
@@ -868,7 +879,8 @@ export function getTargetInfo(
     let moveableClientRect = resetClientRect();
 
     const result = calculateElementInfo(
-        target, container!, rootContainer!, false,
+        iframeSelector,
+        target, container!, rootContainer!, false
         // state,
     );
     if (target) {
@@ -884,15 +896,17 @@ export function getTargetInfo(
             [beforePosition.left - result.left, beforePosition.top - result.top],
         );
 
-        targetClientRect = getClientRect(target);
-        const iframe =  document.querySelector("iframe[px-code-frame]") as HTMLIFrameElement;
+        targetClientRect = getClientRect(target, iframeSelector);
+        const iframe = document.querySelector(iframeSelector) as HTMLIFrameElement;
         const contentDocument = iframe.contentDocument;
         containerClientRect = getClientRect(
-            getOffsetInfo(parentContainer, parentContainer, true).offsetParent || contentDocument!.body,
-            true,
+          getOffsetInfo(parentContainer, parentContainer, iframeSelector).offsetParent || contentDocument!.body,
+          iframeSelector,
+          true,
+
         );
         if (moveableElement) {
-            moveableClientRect = getClientRect(moveableElement);
+            moveableClientRect = getClientRect(moveableElement, iframeSelector);
         }
     }
 
@@ -917,13 +931,13 @@ export function resetClientRect(): MoveableClientRect {
         scrollWidth: 0, scrollHeight: 0,
     };
 }
-export function getClientRect(el: HTMLElement | SVGElement, isExtends?: boolean) {
+export function getClientRect(el: HTMLElement | SVGElement, iframeSelector: string, isExtends?: boolean) {
     let left = 0;
     let top = 0;
     let width = 0;
     let height = 0;
 
-    const iframe =  document.querySelector("iframe[px-code-frame]") as HTMLIFrameElement;
+    const iframe =  document.querySelector(iframeSelector) as HTMLIFrameElement;
     const contentDocument = iframe.contentDocument;
     const contentWindow = iframe.contentWindow;
     if (el === contentDocument!.body || el === contentDocument!.documentElement) {
@@ -956,7 +970,7 @@ export function getClientRect(el: HTMLElement | SVGElement, isExtends?: boolean)
         rect.clientHeight = el.clientHeight;
         rect.scrollWidth = el.scrollWidth;
         rect.scrollHeight = el.scrollHeight;
-        rect.overflow = getComputedStyle(el).overflow !== "visible";
+        rect.overflow = getComputedStyle(el, iframeSelector).overflow !== "visible";
     }
     return rect;
 }
@@ -1094,8 +1108,8 @@ export function triggerEvent<T extends IObject<any> = MoveableProps, U extends k
     return moveable.triggerEvent(name, params, isManager);
 }
 
-export function getComputedStyle(el: HTMLElement | SVGElement, pseudoElt?: string | null) {
-    const iframe =  document.querySelector("iframe[px-code-frame]") as HTMLIFrameElement;
+export function getComputedStyle(el: HTMLElement | SVGElement, iframeSelector: string, pseudoElt?: string | null) {
+    const iframe =  document.querySelector(iframeSelector) as HTMLIFrameElement;
     const contentWindow = iframe.contentWindow;
     return contentWindow!.getComputedStyle(el, pseudoElt);
 }
@@ -1367,18 +1381,19 @@ export function isArrayFormat<T = any>(arr: any): arr is ArrayFormat<T> {
     return isArray(arr) || "length" in arr;
 }
 
-export function getRefTarget<T extends HTMLElement | SVGElement = HTMLElement | SVGElement>(target: MoveableRefType<T>, isSelector: true): T | null;
-export function getRefTarget<T extends HTMLElement | SVGElement = HTMLElement | SVGElement>(target: MoveableRefType<T>, isSelector?: boolean): T | string | null;
+export function getRefTarget<T extends HTMLElement | SVGElement = HTMLElement | SVGElement>(target: MoveableRefType<T>, iframeSelector: string, isSelector: true): T | null;
+export function getRefTarget<T extends HTMLElement | SVGElement = HTMLElement | SVGElement>(target: MoveableRefType<T>, iframeSelector: string, isSelector?: boolean): T | string | null;
 export function getRefTarget<T extends HTMLElement | SVGElement = HTMLElement | SVGElement>(
     target: MoveableRefType<T>,
-    isSelector?: boolean,
+    iframeSelector: string,
+    isSelector?: boolean
 ): any {
     if (!target) {
         return null;
     }
     if (isString(target)) {
         if (isSelector) {
-            const iframe =  document.querySelector("iframe[px-code-frame]") as HTMLIFrameElement;
+            const iframe =  document.querySelector(iframeSelector) as HTMLIFrameElement;
             const contentDocument = iframe.contentDocument;
             return contentDocument!.querySelector(target);
         }
@@ -1393,9 +1408,9 @@ export function getRefTarget<T extends HTMLElement | SVGElement = HTMLElement | 
     return target;
 }
 
-export function getRefTargets(targets: MoveableRefType | ArrayFormat<MoveableRefType>, isSelector: true): Array<HTMLElement | SVGElement | null>;
-export function getRefTargets(targets: MoveableRefType | ArrayFormat<MoveableRefType>, isSelector?: boolean): Array<HTMLElement | SVGElement | string | null>;
-export function getRefTargets(targets: MoveableRefType | ArrayFormat<MoveableRefType>, isSelector?: boolean) {
+export function getRefTargets(targets: MoveableRefType | ArrayFormat<MoveableRefType>, iframeSelector: string, isSelector: true): Array<HTMLElement | SVGElement | null>;
+export function getRefTargets(targets: MoveableRefType | ArrayFormat<MoveableRefType>, iframeSelector: string, isSelector?: boolean): Array<HTMLElement | SVGElement | string | null>;
+export function getRefTargets(targets: MoveableRefType | ArrayFormat<MoveableRefType>, iframeSelector: string, isSelector?: boolean) {
     if (!targets) {
         return [];
     }
@@ -1403,11 +1418,11 @@ export function getRefTargets(targets: MoveableRefType | ArrayFormat<MoveableRef
 
     return userTargets.reduce((prev, target) => {
         if (isString(target) && isSelector) {
-            const iframe =  document.querySelector("iframe[px-code-frame]") as HTMLIFrameElement;
+            const iframe =  document.querySelector(iframeSelector) as HTMLIFrameElement;
             const contentDocument = iframe.contentDocument;
             return [...prev, ...[].slice.call(contentDocument!.querySelectorAll<HTMLElement>(target))];
         }
-        prev.push(getRefTarget(target, isSelector));
+        prev.push(getRefTarget(target, iframeSelector, isSelector));
         return prev;
     }, [] as Array<SVGElement | HTMLElement | string | null | undefined>);
 }

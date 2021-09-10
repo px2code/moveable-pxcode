@@ -64,7 +64,7 @@ export default class MoveableManager<T = {}>
         target: null,
         gesto: null,
         renderPoses: [[0, 0], [0, 0], [0, 0], [0, 0]],
-        ...getTargetInfo(null),
+        ...getTargetInfo(this.props.iframeSelector),
     };
     public enabledAbles: Able[] = [];
     public targetAbles: Able[] = [];
@@ -311,10 +311,9 @@ export default class MoveableManager<T = {}>
             ? parentMoveable.props.rootContainer
             : props.rootContainer;
         this.updateState(
-            getTargetInfo(this.controlBox && this.controlBox.getElement(),
+            getTargetInfo(this.props.iframeSelector, this.controlBox && this.controlBox.getElement(),
                 target, container, container,
-                rootContainer || container,
-                // isTarget ? state : undefined
+                rootContainer || container
             ),
             parentMoveable ? false : isSetState,
         );
@@ -386,7 +385,7 @@ export default class MoveableManager<T = {}>
             this.targetGesto = getTargetAbleGesto(this, target!, "");
         }
         if (!this.controlGesto && hasControlAble) {
-            this.controlGesto = getAbleGesto(this, controlBoxElement, "controlAbles", "Control");
+            this.controlGesto = getAbleGesto(this, controlBoxElement, "controlAbles", "Control", undefined, this.props.iframeSelector);
         }
         if (isUnset) {
             this.unsetAbles();
@@ -547,21 +546,21 @@ export default class MoveableManager<T = {}>
         const eventAffix = `${(groupable ? "Group" : "")}${ableRequester.isControl ? "Control" : ""}`;
 
         const requester = {
-            request(ableParam: IObject<any>) {
+            request: (ableParam: IObject<any>) => {
                 triggerAble(self, ableType, "drag", eventAffix, "", {
                     ...ableRequester.request(ableParam),
                     requestAble: ableName,
                     isRequest: true,
-                }, requestInstant);
-                return this;
+                }, requestInstant, this.props.iframeSelector);
+                return requester;
             },
-            requestEnd() {
+            requestEnd: () => {
                 triggerAble(self, ableType, "drag", eventAffix, "End", {
                     ...ableRequester.requestEnd(),
                     requestAble: ableName,
                     isRequest: true,
-                }, requestInstant);
-                return this;
+                }, requestInstant, this.props.iframeSelector);
+                return requester;
             },
         };
 
@@ -569,7 +568,7 @@ export default class MoveableManager<T = {}>
             ...ableRequester.requestStart(param),
             requestAble: ableName,
             isRequest: true,
-        }, requestInstant);
+        }, requestInstant, this.props.iframeSelector);
 
         return requestInstant ? requester.request(param).requestEnd() : requester;
     }

@@ -202,7 +202,7 @@ export function dragControlCondition(e: any, moveable: MoveableManagerInterface<
     const rotationTarget = moveable.props.rotationTarget;
 
     if (rotationTarget) {
-        return getRefTargets(rotationTarget, true).some(element => {
+        return getRefTargets(rotationTarget, moveable.props.iframeSelector, true).some(element => {
             if (!element) {
                 return false;
             }

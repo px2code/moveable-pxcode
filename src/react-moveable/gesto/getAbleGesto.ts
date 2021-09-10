@@ -12,7 +12,8 @@ export function triggerAble(
     eventAffix: string,
     eventType: any,
     e: any,
-    requestInstant?: boolean,
+    requestInstant: boolean,
+    iframeSelector: string
 ) {
     const isStart = eventType === "Start";
     const target = moveable.state.target;
@@ -66,7 +67,7 @@ export function triggerAble(
     let inputTarget: Element;
 
     if (isEnd && inputEvent) {
-        const iframe = document.querySelector("iframe[px-code-frame]") as HTMLIFrameElement;
+        const iframe = document.querySelector(iframeSelector) as HTMLIFrameElement;
         const contentDocument = iframe.contentDocument;
         inputTarget = contentDocument!.elementFromPoint(e.clientX, e.clientY) || inputEvent.target;
     }
@@ -113,7 +114,7 @@ export function triggerAble(
         moveable.forceUpdate();
     }
     if (!isStart && !isEnd && !isAfter && isUpdate && !requestInstant) {
-        triggerAble(moveable, ableType, eventOperation, eventAffix, eventType + "After", e);
+        triggerAble(moveable, ableType, eventOperation, eventAffix, eventType + "After", e, false, iframeSelector);
     }
     return true;
 }
@@ -153,7 +154,7 @@ export function getAbleGesto(
     ableType: string,
     eventAffix: string,
     conditionFunctions: IObject<any> = {},
-    iframeSelector: string = "iframe[px-code-frame]"
+    iframeSelector: string
 ) {
     const iframe =  document.querySelector(iframeSelector) as HTMLIFrameElement;
     const contentWindow = iframe.contentWindow;
@@ -179,7 +180,7 @@ export function getAbleGesto(
                     e.stop();
                     return;
                 }
-                const result = triggerAble(moveable, ableType, eventOperation, eventAffix, eventType, e);
+                const result = triggerAble(moveable, ableType, eventOperation, eventAffix, eventType, e, false, iframeSelector);
 
                 if (!result) {
                     e.stop();

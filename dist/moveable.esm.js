@@ -192,8 +192,8 @@ function measureSVGSize(el, unit, isHorizontal) {
 
   return 1;
 }
-function getBeforeTransformOrigin(el) {
-  var relativeOrigin = getTransformOrigin(getComputedStyle$1(el, ":before"));
+function getBeforeTransformOrigin(el, iframeSelector) {
+  var relativeOrigin = getTransformOrigin(getComputedStyle$1(el, ":before", iframeSelector));
   return relativeOrigin.map(function (o, i) {
     var _a = splitUnit(o),
         value = _a.value,
@@ -206,8 +206,8 @@ function getTransformOrigin(style) {
   var transformOrigin = style.transformOrigin;
   return transformOrigin ? transformOrigin.split(" ") : ["0", "0"];
 }
-function getOffsetInfo(el, lastParent, isParent) {
-  var iframe = document.querySelector("iframe[px-code-frame]");
+function getOffsetInfo(el, lastParent, iframeSelector, isParent) {
+  var iframe = document.querySelector(iframeSelector);
   var contentDocument = iframe.contentDocument;
   var body = contentDocument.body;
   var target = !el || isParent ? el : el.parentElement;
@@ -219,7 +219,7 @@ function getOffsetInfo(el, lastParent, isParent) {
       isEnd = true;
     }
 
-    var style = getComputedStyle$1(target);
+    var style = getComputedStyle$1(target, iframeSelector);
     var transform = style.transform;
     position = style.position;
 
@@ -237,7 +237,7 @@ function getOffsetInfo(el, lastParent, isParent) {
     offsetParent: target || body
   };
 }
-function getOffsetPosInfo(el, container, style, isFixed) {
+function getOffsetPosInfo(el, container, style, isFixed, iframeSelector) {
   var _a;
 
   var tagName = el.tagName.toLowerCase();
@@ -245,7 +245,7 @@ function getOffsetPosInfo(el, container, style, isFixed) {
   var offsetTop = el.offsetTop;
 
   if (isFixed) {
-    var iframe = document.querySelector("iframe[px-code-frame]");
+    var iframe = document.querySelector(iframeSelector);
     var contentDocument = iframe.contentDocument;
     var containerClientRect = (container || contentDocument.documentElement).getBoundingClientRect();
     offsetLeft -= containerClientRect.left;
@@ -259,7 +259,7 @@ function getOffsetPosInfo(el, container, style, isFixed) {
   var targetOrigin; // inner svg element
 
   if (!hasOffset && tagName !== "svg") {
-    origin = IS_WEBKIT605 ? getBeforeTransformOrigin(el) : getTransformOrigin(style).map(function (pos) {
+    origin = IS_WEBKIT605 ? getBeforeTransformOrigin(el, iframeSelector) : getTransformOrigin(style).map(function (pos) {
       return parseFloat(pos);
     });
     targetOrigin = origin.slice();
@@ -281,22 +281,22 @@ function getOffsetPosInfo(el, container, style, isFixed) {
     targetOrigin: targetOrigin
   };
 }
-function getBodyOffset(el, isSVG, style) {
+function getBodyOffset(el, iframeSelector, isSVG, style) {
   if (style === void 0) {
-    style = getComputedStyle$1(el);
+    style = getComputedStyle$1(el, iframeSelector);
   }
 
-  var iframe = document.querySelector("iframe[px-code-frame]");
+  var iframe = document.querySelector(iframeSelector);
   var contentDocument = iframe.contentDocument;
-  var bodyStyle = getComputedStyle$1(contentDocument.body);
+  var bodyStyle = getComputedStyle$1(contentDocument.body, iframeSelector);
   var bodyPosition = bodyStyle.position;
 
   if (!isSVG && (!bodyPosition || bodyPosition === "static")) {
     return [0, 0];
   }
 
-  var marginLeft = parseInt(bodyStyle.marginLeft, 10);
-  var marginTop = parseInt(bodyStyle.marginTop, 10);
+  var marginLeft = parseInt("" + bodyStyle.marginLeft, 10);
+  var marginTop = parseInt("" + bodyStyle.marginTop, 10);
 
   if (style.position === "absolute") {
     if (style.top !== "auto" || style.bottom !== "auto") {
@@ -310,7 +310,7 @@ function getBodyOffset(el, isSVG, style) {
 
   return [marginLeft, marginTop];
 }
-function getMatrixStackInfo(target, container) {
+function getMatrixStackInfo(target, iframeSelector, container) {
   var el = target;
   var matrixes = [];
   var isEnd = false;
@@ -319,7 +319,7 @@ function getMatrixStackInfo(target, container) {
   var transformOrigin;
   var targetTransformOrigin;
   var targetMatrix;
-  var offsetContainer = getOffsetInfo(container, container, true).offsetParent; // if (prevMatrix) {
+  var offsetContainer = getOffsetInfo(container, container, iframeSelector).offsetParent; // if (prevMatrix) {
   //     isEnd = target === container;
   //     if (prevMatrix.length > 10) {
   //         is3d = true;
@@ -329,7 +329,7 @@ function getMatrixStackInfo(target, container) {
   // }
 
   while (el && !isEnd) {
-    var style = getComputedStyle$1(el);
+    var style = getComputedStyle$1(el, iframeSelector);
     var position = style.position;
     var isFixed = position === "fixed";
     var matrix = convertCSStoMatrix(getTransformMatrix(style.transform)); // convert 3 to 4
@@ -350,7 +350,7 @@ function getMatrixStackInfo(target, container) {
       matrix = convertDimension(matrix, 3, 4);
     }
 
-    var _a = getOffsetPosInfo(el, container, style, isFixed),
+    var _a = getOffsetPosInfo(el, container, style, isFixed, iframeSelector),
         tagName = _a.tagName,
         hasOffset = _a.hasOffset,
         isSVG = _a.isSVG,
@@ -369,7 +369,7 @@ function getMatrixStackInfo(target, container) {
       offsetTop = 0;
     }
 
-    var _b = getOffsetInfo(el, container),
+    var _b = getOffsetInfo(el, container, iframeSelector),
         offsetParent = _b.offsetParent,
         isOffsetEnd = _b.isEnd,
         isStatic = _b.isStatic;
@@ -389,11 +389,11 @@ function getMatrixStackInfo(target, container) {
       parentClientTop = offsetParent.clientTop;
     }
 
-    var iframe = document.querySelector("iframe[px-code-frame]");
+    var iframe = document.querySelector(iframeSelector);
     var contentDocument = iframe.contentDocument;
 
     if (hasOffset && offsetParent === contentDocument.body) {
-      var margin = getBodyOffset(el, false, style);
+      var margin = getBodyOffset(el, iframeSelector, false, style);
       offsetLeft += margin[0];
       offsetTop += margin[1];
     }
@@ -443,7 +443,7 @@ function getMatrixStackInfo(target, container) {
     is3d: is3d
   };
 }
-function calculateElementInfo(target, container, rootContainer, isAbsolute3d) {
+function calculateElementInfo(iframeSelector, target, container, rootContainer, isAbsolute3d) {
   var _a;
 
   if (rootContainer === void 0) {
@@ -459,17 +459,18 @@ function calculateElementInfo(target, container, rootContainer, isAbsolute3d) {
   var allResult = {};
 
   if (target) {
-    var style = getComputedStyle$1(target);
+    var style = getComputedStyle$1(target, iframeSelector);
     width = target.offsetWidth;
     height = target.offsetHeight;
 
     if (isUndefined(width)) {
-      _a = getSize(target, style, true), width = _a[0], height = _a[1];
+      _a = getSize(target, iframeSelector, style, true), width = _a[0], height = _a[1];
     }
   }
 
   if (target) {
-    var result = calculateMatrixStack(target, container, rootContainer, isAbsolute3d);
+    var result = calculateMatrixStack(target, iframeSelector, container, rootContainer, isAbsolute3d // prevMatrix, prevRootMatrix, prevN,
+    );
     var position = calculateMoveablePosition(result.allMatrix, result.transformOrigin, width, height);
     allResult = __assign(__assign({}, result), position);
     var rotationPosition = calculateMoveablePosition(result.allMatrix, [50, 50], 100, 100);
@@ -521,19 +522,19 @@ function calculateElementInfo(target, container, rootContainer, isAbsolute3d) {
     direction: 1
   }, allResult);
 }
-function getElementInfo(target, container, rootContainer) {
+function getElementInfo(target, iframeSelector, container, rootContainer) {
   if (rootContainer === void 0) {
     rootContainer = container;
   }
 
-  return calculateElementInfo(target, container, rootContainer, true);
+  return calculateElementInfo(iframeSelector, target, container, rootContainer, true);
 }
-function calculateMatrixStack(target, container, rootContainer, isAbsolute3d) {
+function calculateMatrixStack(target, iframeSelector, container, rootContainer, isAbsolute3d) {
   if (rootContainer === void 0) {
     rootContainer = container;
   }
 
-  var _a = getMatrixStackInfo(target, container),
+  var _a = getMatrixStackInfo(target, iframeSelector, container),
       matrixes = _a.matrixes,
       is3d = _a.is3d,
       prevTargetMatrix = _a.targetMatrix,
@@ -542,12 +543,12 @@ function calculateMatrixStack(target, container, rootContainer, isAbsolute3d) {
       offsetContainer = _a.offsetContainer; // prevMatrix
 
 
-  var _b = getMatrixStackInfo(offsetContainer, rootContainer),
+  var _b = getMatrixStackInfo(offsetContainer, iframeSelector, rootContainer),
       rootMatrixes = _b.matrixes,
       isRoot3d = _b.is3d; // prevRootMatrix
 
 
-  var iframe = document.querySelector("iframe[px-code-frame]");
+  var iframe = document.querySelector(iframeSelector);
   var contentDocument = iframe.contentDocument; // if (rootContainer === contentDocument!.body) {
   //     console.log(offsetContainer, rootContainer, rootMatrixes);
   // }
@@ -565,7 +566,7 @@ function calculateMatrixStack(target, container, rootContainer, isAbsolute3d) {
   var beforeMatrix = createIdentityMatrix(n);
   var offsetMatrix = createIdentityMatrix(n);
   var length = matrixes.length;
-  var endContainer = getOffsetInfo(originalContainer, originalContainer, true).offsetParent;
+  var endContainer = getOffsetInfo(originalContainer, originalContainer, iframeSelector).offsetParent;
   rootMatrixes.reverse();
   matrixes.reverse();
 
@@ -605,7 +606,7 @@ function calculateMatrixStack(target, container, rootContainer, isAbsolute3d) {
 
 
     if (isObject(matrix[n * (n - 1)])) {
-      _a = getSVGOffset(matrix[n * (n - 1)], endContainer, n, matrix[n * (n - 1) + 1], allMatrix, matrixes[i + 1]), matrix[n * (n - 1)] = _a[0], matrix[n * (n - 1) + 1] = _a[1];
+      _a = getSVGOffset(matrix[n * (n - 1)], endContainer, n, matrix[n * (n - 1) + 1], allMatrix, matrixes[i + 1], iframeSelector), matrix[n * (n - 1)] = _a[0], matrix[n * (n - 1) + 1] = _a[1];
     }
 
     allMatrix = multiply(allMatrix, matrix, n);
@@ -747,20 +748,20 @@ function calculateRect(matrix, width, height, n) {
   var poses = calculatePoses(matrix, width, height, n);
   return getRect(poses);
 }
-function getSVGOffset(el, container, n, origin, beforeMatrix, absoluteMatrix) {
+function getSVGOffset(el, container, n, origin, beforeMatrix, absoluteMatrix, iframeSelector) {
   var _a;
 
-  var _b = getSize(el, undefined, true),
+  var _b = getSize(el, iframeSelector, undefined, true),
       width = _b[0],
       height = _b[1];
 
   var containerClientRect = container.getBoundingClientRect();
   var margin = [0, 0];
-  var iframe = document.querySelector("iframe[px-code-frame]");
+  var iframe = document.querySelector(iframeSelector);
   var contentDocument = iframe.contentDocument;
 
   if (container === contentDocument.body) {
-    margin = getBodyOffset(el, true);
+    margin = getBodyOffset(el, iframeSelector, true);
   }
 
   var rect = el.getBoundingClientRect();
@@ -894,15 +895,15 @@ function getControlTransform(rotation, zoom) {
     transform: "translateZ(0px) translate(" + x + "px, " + y + "px) rotate(" + rotation + "rad) scale(" + zoom + ")"
   };
 }
-function getCSSSize(target) {
-  var iframe = document.querySelector("iframe[px-code-frame]");
+function getCSSSize(target, iframeSelector) {
+  var iframe = document.querySelector(iframeSelector);
   var contentWindow = iframe.contentWindow;
   var style = contentWindow.getComputedStyle(target);
   return [parseFloat(style.width), parseFloat(style.height)];
 }
-function getSize(target, style, isOffset, isBoxSizing) {
+function getSize(target, iframeSelector, style, isOffset, isBoxSizing) {
   if (style === void 0) {
-    style = getComputedStyle$1(target);
+    style = getComputedStyle$1(target, iframeSelector);
   }
 
   if (isBoxSizing === void 0) {
@@ -942,26 +943,27 @@ function getSize(target, style, isOffset, isBoxSizing) {
 function getRotationRad(poses, direction) {
   return getRad(direction > 0 ? poses[0] : poses[1], direction > 0 ? poses[1] : poses[0]);
 }
-function getTargetInfo(moveableElement, target, container, parentContainer, rootContainer) {
+function getTargetInfo(iframeSelector, moveableElement, target, container, parentContainer, rootContainer) {
   var beforeDirection = 1;
   var beforeOrigin = [0, 0];
   var targetClientRect = resetClientRect();
   var containerClientRect = resetClientRect();
   var moveableClientRect = resetClientRect();
-  var result = calculateElementInfo(target, container, rootContainer, false);
+  var result = calculateElementInfo(iframeSelector, target, container, rootContainer, false // state,
+  );
 
   if (target) {
     var n = result.is3d ? 4 : 3;
     var beforePosition = calculateMoveablePosition(result.offsetMatrix, plus(result.transformOrigin, getOrigin(result.targetMatrix, n)), result.width, result.height);
     beforeDirection = beforePosition.direction;
     beforeOrigin = plus(beforePosition.origin, [beforePosition.left - result.left, beforePosition.top - result.top]);
-    targetClientRect = getClientRect(target);
-    var iframe = document.querySelector("iframe[px-code-frame]");
+    targetClientRect = getClientRect(target, iframeSelector);
+    var iframe = document.querySelector(iframeSelector);
     var contentDocument = iframe.contentDocument;
-    containerClientRect = getClientRect(getOffsetInfo(parentContainer, parentContainer, true).offsetParent || contentDocument.body, true);
+    containerClientRect = getClientRect(getOffsetInfo(parentContainer, parentContainer, iframeSelector).offsetParent || contentDocument.body, iframeSelector, true);
 
     if (moveableElement) {
-      moveableClientRect = getClientRect(moveableElement);
+      moveableClientRect = getClientRect(moveableElement, iframeSelector);
     }
   }
 
@@ -991,12 +993,12 @@ function resetClientRect() {
     scrollHeight: 0
   };
 }
-function getClientRect(el, isExtends) {
+function getClientRect(el, iframeSelector, isExtends) {
   var left = 0;
   var top = 0;
   var width = 0;
   var height = 0;
-  var iframe = document.querySelector("iframe[px-code-frame]");
+  var iframe = document.querySelector(iframeSelector);
   var contentDocument = iframe.contentDocument;
   var contentWindow = iframe.contentWindow;
 
@@ -1029,7 +1031,7 @@ function getClientRect(el, isExtends) {
     rect.clientHeight = el.clientHeight;
     rect.scrollWidth = el.scrollWidth;
     rect.scrollHeight = el.scrollHeight;
-    rect.overflow = getComputedStyle$1(el).overflow !== "visible";
+    rect.overflow = getComputedStyle$1(el, iframeSelector).overflow !== "visible";
   }
 
   return rect;
@@ -1136,8 +1138,8 @@ function fillEndParams(moveable, e, params) {
 function triggerEvent(moveable, name, params, isManager) {
   return moveable.triggerEvent(name, params, isManager);
 }
-function getComputedStyle$1(el, pseudoElt) {
-  var iframe = document.querySelector("iframe[px-code-frame]");
+function getComputedStyle$1(el, iframeSelector, pseudoElt) {
+  var iframe = document.querySelector(iframeSelector);
   var contentWindow = iframe.contentWindow;
   return contentWindow.getComputedStyle(el, pseudoElt);
 }
@@ -1397,14 +1399,14 @@ function isArrayFormat(arr) {
 
   return isArray(arr) || "length" in arr;
 }
-function getRefTarget(target, isSelector) {
+function getRefTarget(target, iframeSelector, isSelector) {
   if (!target) {
     return null;
   }
 
   if (isString(target)) {
     if (isSelector) {
-      var iframe = document.querySelector("iframe[px-code-frame]");
+      var iframe = document.querySelector(iframeSelector);
       var contentDocument = iframe.contentDocument;
       return contentDocument.querySelector(target);
     }
@@ -1422,7 +1424,7 @@ function getRefTarget(target, isSelector) {
 
   return target;
 }
-function getRefTargets(targets, isSelector) {
+function getRefTargets(targets, iframeSelector, isSelector) {
   if (!targets) {
     return [];
   }
@@ -1430,12 +1432,12 @@ function getRefTargets(targets, isSelector) {
   var userTargets = isArrayFormat(targets) ? [].slice.call(targets) : [targets];
   return userTargets.reduce(function (prev, target) {
     if (isString(target) && isSelector) {
-      var iframe = document.querySelector("iframe[px-code-frame]");
+      var iframe = document.querySelector(iframeSelector);
       var contentDocument = iframe.contentDocument;
       return __spreadArrays(prev, [].slice.call(contentDocument.querySelectorAll(target)));
     }
 
-    prev.push(getRefTarget(target, isSelector));
+    prev.push(getRefTarget(target, iframeSelector, isSelector));
     return prev;
   }, []);
 }
@@ -5955,7 +5957,7 @@ function dragControlCondition(e, moveable) {
   var rotationTarget = moveable.props.rotationTarget;
 
   if (rotationTarget) {
-    return getRefTargets(rotationTarget, true).some(function (element) {
+    return getRefTargets(rotationTarget, moveable.props.iframeSelector, true).some(function (element) {
       if (!element) {
         return false;
       }
@@ -6560,7 +6562,7 @@ var Resizable = {
     datas.startOffsetHeight = height;
     datas.prevWidth = 0;
     datas.prevHeight = 0;
-    _a = getCSSSize(target), datas.startWidth = _a[0], datas.startHeight = _a[1];
+    _a = getCSSSize(target, moveable.props.iframeSelector), datas.startWidth = _a[0], datas.startHeight = _a[1];
     var padding = [Math.max(0, width - datas.startWidth), Math.max(0, height - datas.startHeight)];
     datas.minSize = padding;
     datas.maxSize = [Infinity, Infinity];
@@ -8467,7 +8469,7 @@ var Scrollable = {
     var _a = props.scrollContainer,
         scrollContainer = _a === void 0 ? moveable.getContainer() : _a;
     var dragScroll = new DragScroll();
-    var scrollContainerElement = getRefTarget(scrollContainer, true);
+    var scrollContainerElement = getRefTarget(scrollContainer, moveable.props.iframeSelector, true);
     e.datas.dragScroll = dragScroll;
     var gestoName = e.isControl ? "controlGesto" : "targetGesto";
     var targets = e.targets;
@@ -11226,7 +11228,7 @@ var Renderable = {
   }
 };
 
-function triggerAble(moveable, ableType, eventOperation, eventAffix, eventType, e, requestInstant) {
+function triggerAble(moveable, ableType, eventOperation, eventAffix, eventType, e, requestInstant, iframeSelector) {
   var isStart = eventType === "Start";
   var target = moveable.state.target;
   var isRequest = e.isRequest;
@@ -11284,7 +11286,7 @@ function triggerAble(moveable, ableType, eventOperation, eventAffix, eventType, 
   var inputTarget;
 
   if (isEnd && inputEvent) {
-    var iframe = document.querySelector("iframe[px-code-frame]");
+    var iframe = document.querySelector(iframeSelector);
     var contentDocument = iframe.contentDocument;
     inputTarget = contentDocument.elementFromPoint(e.clientX, e.clientY) || inputEvent.target;
   }
@@ -11343,7 +11345,7 @@ function triggerAble(moveable, ableType, eventOperation, eventAffix, eventType, 
   }
 
   if (!isStart && !isEnd && !isAfter && isUpdate && !requestInstant) {
-    triggerAble(moveable, ableType, eventOperation, eventAffix, eventType + "After", e);
+    triggerAble(moveable, ableType, eventOperation, eventAffix, eventType + "After", e, false, iframeSelector);
   }
 
   return true;
@@ -11373,10 +11375,6 @@ function getAbleGesto(moveable, target, ableType, eventAffix, conditionFunctions
     conditionFunctions = {};
   }
 
-  if (iframeSelector === void 0) {
-    iframeSelector = "iframe[px-code-frame]";
-  }
-
   var iframe = document.querySelector(iframeSelector);
   var contentWindow = iframe.contentWindow;
   var _a = moveable.props,
@@ -11400,7 +11398,7 @@ function getAbleGesto(moveable, target, ableType, eventAffix, conditionFunctions
           return;
         }
 
-        var result = triggerAble(moveable, ableType, eventOperation, eventAffix, eventType, e);
+        var result = triggerAble(moveable, ableType, eventOperation, eventAffix, eventType, e, false, iframeSelector);
 
         if (!result) {
           e.stop();
@@ -11460,7 +11458,7 @@ var MoveableManager = function (_super) {
       target: null,
       gesto: null,
       renderPoses: [[0, 0], [0, 0], [0, 0], [0, 0]]
-    }, getTargetInfo(null));
+    }, getTargetInfo(_this.props.iframeSelector));
     _this.enabledAbles = [];
     _this.targetAbles = [];
     _this.controlAbles = [];
@@ -11735,7 +11733,7 @@ var MoveableManager = function (_super) {
     var target = state.target || this.props.target;
     var container = this.getContainer();
     var rootContainer = parentMoveable ? parentMoveable.props.rootContainer : props.rootContainer;
-    this.updateState(getTargetInfo(this.controlBox && this.controlBox.getElement(), target, container, container, rootContainer || container), parentMoveable ? false : isSetState);
+    this.updateState(getTargetInfo(this.props.iframeSelector, this.controlBox && this.controlBox.getElement(), target, container, container, rootContainer || container), parentMoveable ? false : isSetState);
   };
 
   __proto.isTargetChanged = function (prevProps, useDragArea) {
@@ -11817,7 +11815,7 @@ var MoveableManager = function (_super) {
     }
 
     if (!this.controlGesto && hasControlAble) {
-      this.controlGesto = getAbleGesto(this, controlBoxElement, "controlAbles", "Control");
+      this.controlGesto = getAbleGesto(this, controlBoxElement, "controlAbles", "Control", undefined, this.props.iframeSelector);
     }
 
     if (isUnset) {
@@ -11964,6 +11962,8 @@ var MoveableManager = function (_super) {
 
 
   __proto.request = function (ableName, param, isInstant) {
+    var _this = this;
+
     if (param === void 0) {
       param = {};
     }
@@ -11996,21 +11996,21 @@ var MoveableManager = function (_super) {
         triggerAble(self, ableType, "drag", eventAffix, "", __assign(__assign({}, ableRequester.request(ableParam)), {
           requestAble: ableName,
           isRequest: true
-        }), requestInstant);
-        return this;
+        }), requestInstant, _this.props.iframeSelector);
+        return requester;
       },
       requestEnd: function () {
         triggerAble(self, ableType, "drag", eventAffix, "End", __assign(__assign({}, ableRequester.requestEnd()), {
           requestAble: ableName,
           isRequest: true
-        }), requestInstant);
-        return this;
+        }), requestInstant, _this.props.iframeSelector);
+        return requester;
       }
     };
     triggerAble(self, ableType, "drag", eventAffix, "Start", __assign(__assign({}, ableRequester.requestStart(param)), {
       requestAble: ableName,
       isRequest: true
-    }), requestInstant);
+    }), requestInstant, this.props.iframeSelector);
     return requestInstant ? requester.request(param).requestEnd() : requester;
   };
   /**
@@ -12772,7 +12772,8 @@ var MoveableGroup = function (_super) {
     state.width = width;
     state.height = height;
     var container = this.getContainer();
-    var info = getTargetInfo(this.controlBox.getElement(), target, this.controlBox.getElement(), this.getContainer(), this.props.rootContainer || container);
+    var info = getTargetInfo(this.props.iframeSelector, this.controlBox.getElement(), target, this.controlBox.getElement(), this.getContainer(), this.props.rootContainer || container // state,
+    );
     var pos = [info.left, info.top];
 
     var _b = getAbsolutePosesByState(info),
@@ -12981,7 +12982,7 @@ var InitialMoveable = function (_super) {
         userProps = _a.props,
         props = __rest(_a, ["ables", "props"]);
 
-    var refTargets = getRefTargets(props.target || props.targets);
+    var refTargets = getRefTargets(props.target || props.targets, this.props.iframeSelector);
     var elementTargets = getElementTargets(refTargets, this.selectorMap);
     this.refTargets = refTargets;
     var isGroup = elementTargets.length > 1;
@@ -13032,7 +13033,7 @@ var InitialMoveable = function (_super) {
   };
 
   __proto.updateRefs = function (isReset) {
-    var refTargets = getRefTargets(this.props.target || this.props.targets);
+    var refTargets = getRefTargets(this.props.target || this.props.targets, this.props.iframeSelector);
     var isUpdate = this.refTargets.some(function (target, i) {
       var nextTarget = refTargets[i];
 
@@ -13046,7 +13047,7 @@ var InitialMoveable = function (_super) {
     });
     var selectorMap = isReset ? {} : this.selectorMap;
     var nextSelectorMap = {};
-    var iframe = document.querySelector("iframe[px-code-frame]");
+    var iframe = document.querySelector(this.props.iframeSelector);
     var contentDocument = iframe.contentDocument;
     this.refTargets.forEach(function (target) {
       if (isString(target)) {
