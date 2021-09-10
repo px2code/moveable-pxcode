@@ -47,7 +47,7 @@ export default class MoveableManager<T = {}>
         transformOrigin: "",
         className: "",
         zoom: 1,
-        iframeSelector: "iframe[px-code-frame]",
+        iframeSelector: "",
         triggerAblesSimultaneously: false,
         padding: {},
         pinchOutside: true,

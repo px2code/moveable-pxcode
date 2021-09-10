@@ -12206,7 +12206,7 @@ var MoveableManager = function (_super) {
     transformOrigin: "",
     className: "",
     zoom: 1,
-    iframeSelector: "iframe[px-code-frame]",
+    iframeSelector: "",
     triggerAblesSimultaneously: false,
     padding: {},
     pinchOutside: true,
