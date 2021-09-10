@@ -12965,7 +12965,8 @@ var InitialMoveable = function (_super) {
       });
     });
     var style = utils.getKeys(cssMap).join("\n");
-    this.defaultStyled = styled("div", frameworkUtils.prefixCSS(PREFIX, MOVEABLE_CSS + style), iframeSelector);
+    console.log("JAMES iframeSelector " + iframeSelector);
+    this.defaultStyled[iframeSelector] = styled("div", frameworkUtils.prefixCSS(PREFIX, MOVEABLE_CSS + style), iframeSelector);
   };
 
   InitialMoveable.getTotalAbles = function () {
@@ -12975,7 +12976,7 @@ var InitialMoveable = function (_super) {
   __proto.render = function () {
     var moveableContructor = this.constructor;
 
-    if (!moveableContructor.defaultStyled) {
+    if (!moveableContructor.defaultStyled[this.props.iframeSelector]) {
       moveableContructor.makeStyled(this.props.iframeSelector);
     }
 
@@ -12994,7 +12995,7 @@ var InitialMoveable = function (_super) {
 
     var nextProps = __assign(__assign(__assign({}, props), userProps || {}), {
       ables: ables,
-      cssStyled: moveableContructor.defaultStyled,
+      cssStyled: moveableContructor.defaultStyled[this.props.iframeSelector],
       customStyledMap: moveableContructor.customStyledMap
     });
 
@@ -13074,7 +13075,7 @@ var InitialMoveable = function (_super) {
 
   InitialMoveable.defaultAbles = [];
   InitialMoveable.customStyledMap = {};
-  InitialMoveable.defaultStyled = null;
+  InitialMoveable.defaultStyled = {};
 
   __decorate([frameworkUtils.withMethods(MOVEABLE_METHODS)], InitialMoveable.prototype, "moveable", void 0);
 

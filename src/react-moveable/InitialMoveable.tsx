@@ -21,7 +21,7 @@ export class InitialMoveable<T = {}>
     extends React.PureComponent<MoveableDefaultProps & GroupableProps & IndividualGroupableProps & T> {
     public static defaultAbles: Able[] = [];
     public static customStyledMap: Record<string, any> = {};
-    public static defaultStyled: any = null;
+    public static defaultStyled: any = {};
     public static makeStyled(iframeSelector: string) {
         const cssMap: IObject<boolean> = {};
 
@@ -36,7 +36,7 @@ export class InitialMoveable<T = {}>
         });
         const style = getKeys(cssMap).join("\n");
 
-        this.defaultStyled = styled("div", prefixCSS(PREFIX, MOVEABLE_CSS + style), iframeSelector);
+        this.defaultStyled[iframeSelector] = styled("div", prefixCSS(PREFIX, MOVEABLE_CSS + style), iframeSelector);
     }
     public static getTotalAbles(): Able[] {
 
@@ -49,7 +49,7 @@ export class InitialMoveable<T = {}>
     public render() {
         const moveableContructor = (this.constructor as typeof InitialMoveable);
 
-        if (!moveableContructor.defaultStyled) {
+        if (!moveableContructor.defaultStyled[this.props.iframeSelector]) {
             moveableContructor.makeStyled(this.props.iframeSelector);
         }
         const {
@@ -72,7 +72,7 @@ export class InitialMoveable<T = {}>
             ...props,
             ...(userProps || {}),
             ables,
-            cssStyled: moveableContructor.defaultStyled,
+            cssStyled: moveableContructor.defaultStyled[this.props.iframeSelector],
             customStyledMap: moveableContructor.customStyledMap,
         };
 
