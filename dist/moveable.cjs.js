@@ -12965,7 +12965,6 @@ var InitialMoveable = function (_super) {
       });
     });
     var style = utils.getKeys(cssMap).join("\n");
-    console.log("JAMES iframeSelector " + iframeSelector);
     this.defaultStyled[iframeSelector] = styled("div", frameworkUtils.prefixCSS(PREFIX, MOVEABLE_CSS + style), iframeSelector);
   };
 
