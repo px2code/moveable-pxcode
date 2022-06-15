@@ -112,7 +112,8 @@ export const MOVEABLE_CSS = `
 	width: 12px;
 	height: 12px;
 	margin-top: -6px;
-    margin-left: -6px;
+  margin-left: -6px;
+  border-radius: 6px;
 	pointer-events: none;
 }
 ${[0, 15, 30, 45, 60, 75, 90, 105, 120, 135, 150, 165].map(degree => `
