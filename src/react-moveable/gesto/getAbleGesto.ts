@@ -1,193 +1,194 @@
-import { Able, MoveableManagerInterface, MoveableGroupInterface } from "../types";
-import { hasClass, IObject } from "@daybrush/utils";
+import { Able, MoveableGroupInterface, MoveableManagerInterface } from "../types";
+import { document, hasClass, IObject } from "@daybrush/utils";
 import { convertDragDist } from "../utils";
-import Gesto, {GestoOptions} from "gesto";
+import Gesto, { GestoOptions } from "gesto";
 import BeforeRenderable from "../ables/BeforeRenderable";
 import Renderable from "../ables/Renderable";
 
 export function triggerAble(
-    moveable: MoveableManagerInterface,
-    ableType: string,
-    eventOperation: string,
-    eventAffix: string,
-    eventType: any,
-    e: any,
-    requestInstant: boolean,
-    iframeSelector: string
+  moveable: MoveableManagerInterface,
+  ableType: string,
+  eventOperation: string,
+  eventAffix: string,
+  eventType: any,
+  e: any,
+  requestInstant: boolean,
+  iframeSelector: string
 ) {
-    const isStart = eventType === "Start";
-    const target = moveable.state.target;
-    const isRequest = e.isRequest;
+  const isStart = eventType === "Start";
+  const target = moveable.state.target;
+  const isRequest = e.isRequest;
 
-    if (
-        !target
-        || (isStart && eventAffix.indexOf("Control") > -1
-            && !isRequest && moveable.areaElement === e.inputEvent.target)
-    ) {
-        return false;
+  if (
+    !target
+    || (isStart && eventAffix.indexOf("Control") > -1
+      && !isRequest && moveable.areaElement === e.inputEvent.target)
+  ) {
+    return false;
+  }
+  const eventName = `${eventOperation}${eventAffix}${eventType}`;
+  const conditionName = `${eventOperation}${eventAffix}Condition`;
+  const isEnd = eventType === "End";
+  const isAfter = eventType.indexOf("After") > -1;
+  const isFirstStart = isStart && (
+    !moveable.targetGesto || !moveable.controlGesto
+    || (!moveable.targetGesto.isFlag() || !moveable.controlGesto.isFlag())
+  );
+
+  if (isFirstStart) {
+    moveable.updateRect(eventType, true, false);
+  }
+  if (eventType === "" && !isAfter && !isRequest) {
+    convertDragDist(moveable.state, e);
+  }
+  const isGroup = eventAffix.indexOf("Group") > -1;
+  const ables: Able[] = [BeforeRenderable, ...(moveable as any)[ableType].slice(), Renderable];
+
+  if (isRequest) {
+    const requestAble = e.requestAble;
+    if (!ables.some(able => able.name === requestAble)) {
+      ables.push(...moveable.props.ables!.filter(able => able.name === requestAble));
     }
-    const eventName = `${eventOperation}${eventAffix}${eventType}`;
-    const conditionName = `${eventOperation}${eventAffix}Condition`;
-    const isEnd = eventType === "End";
-    const isAfter = eventType.indexOf("After") > -1;
-    const isFirstStart = isStart && (
-        !moveable.targetGesto || !moveable.controlGesto
-        || (!moveable.targetGesto.isFlag() || !moveable.controlGesto.isFlag())
-    );
+  }
 
-    if (isFirstStart) {
-        moveable.updateRect(eventType, true, false);
-    }
-    if (eventType === "" && !isAfter && !isRequest) {
-        convertDragDist(moveable.state, e);
-    }
-    const isGroup = eventAffix.indexOf("Group") > -1;
-    const ables: Able[] = [BeforeRenderable, ...(moveable as any)[ableType].slice(), Renderable];
+  if (!ables.length) {
+    return false;
+  }
+  const events = ables.filter((able: any) => able[eventName]);
+  const datas = e.datas;
 
-    if (isRequest) {
-        const requestAble = e.requestAble;
-        if (!ables.some(able => able.name === requestAble)) {
-            ables.push(...moveable.props.ables!.filter(able => able.name === requestAble));
-        }
-    }
-
-    if (!ables.length) {
-        return false;
-    }
-    const events = ables.filter((able: any) => able[eventName]);
-    const datas = e.datas;
-
-    if (isFirstStart) {
-        events.forEach(able => {
-            able.unset && able.unset(moveable);
-        });
-    }
-
-    const inputEvent = e.inputEvent;
-    let inputTarget: Element;
-
-    if (isEnd && inputEvent) {
-        const iframe = document.querySelector(iframeSelector) as HTMLIFrameElement;
-        const contentDocument = iframe.contentDocument;
-        inputTarget = contentDocument!.elementFromPoint(e.clientX, e.clientY) || inputEvent.target;
-    }
-    const results = events.filter((able: any) => {
-        const ableName = able.name;
-        const nextDatas = datas[ableName] || (datas[ableName] = {});
-
-        if (isStart) {
-            nextDatas.isEventStart = !able[conditionName] || able[conditionName](e, moveable);
-        }
-
-        if (nextDatas.isEventStart) {
-            return able[eventName](moveable, { ...e, datas: nextDatas, originalDatas: datas, inputTarget });
-        }
-        return false;
+  if (isFirstStart) {
+    events.forEach(able => {
+      able.unset && able.unset(moveable);
     });
+  }
 
-    const isUpdate = results.length;
-    const isForceEnd = isStart && events.length && !isUpdate;
+  const inputEvent = e.inputEvent;
+  let inputTarget: Element;
 
-    if (isEnd || isForceEnd) {
-        moveable.state.gesto = null;
+  if (isEnd && inputEvent) {
+    const iframe = iframeSelector ? document.querySelector(iframeSelector) as HTMLIFrameElement : null;
+    const contentDocument = iframe ? iframe.contentDocument : document;
+    inputTarget = contentDocument!.elementFromPoint(e.clientX, e.clientY) || inputEvent.target;
+  }
+  const results = events.filter((able: any) => {
+    const ableName = able.name;
+    const nextDatas = datas[ableName] || (datas[ableName] = {});
 
-        if ((moveable as MoveableGroupInterface).moveables) {
-            (moveable as MoveableGroupInterface).moveables.forEach(childMoveable => {
-                childMoveable.state.gesto = null;
-            });
-        }
+    if (isStart) {
+      nextDatas.isEventStart = !able[conditionName] || able[conditionName](e, moveable);
     }
-    if (isFirstStart && isForceEnd) {
-        events.forEach(able => {
-            able.unset && able.unset(moveable);
-        });
+
+    if (nextDatas.isEventStart) {
+      return able[eventName](moveable, { ...e, datas: nextDatas, originalDatas: datas, inputTarget });
     }
-    if (moveable.isUnmounted || isForceEnd) {
-        return false;
+    return false;
+  });
+
+  const isUpdate = results.length;
+  const isForceEnd = isStart && events.length && !isUpdate;
+
+  if (isEnd || isForceEnd) {
+    moveable.state.gesto = null;
+
+    if ((moveable as MoveableGroupInterface).moveables) {
+      (moveable as MoveableGroupInterface).moveables.forEach(childMoveable => {
+        childMoveable.state.gesto = null;
+      });
     }
-    if ((!isStart && isUpdate && !requestInstant) || isEnd) {
-        if (results.some(able => able.updateRect) && !isGroup) {
-            moveable.updateRect(eventType, false, false);
-        } else {
-            moveable.updateRect(eventType, true, false);
-        }
-        moveable.forceUpdate();
+  }
+  if (isFirstStart && isForceEnd) {
+    events.forEach(able => {
+      able.unset && able.unset(moveable);
+    });
+  }
+  if (moveable.isUnmounted || isForceEnd) {
+    return false;
+  }
+  if ((!isStart && isUpdate && !requestInstant) || isEnd) {
+    if (results.some(able => able.updateRect) && !isGroup) {
+      moveable.updateRect(eventType, false, false);
+    } else {
+      moveable.updateRect(eventType, true, false);
     }
-    if (!isStart && !isEnd && !isAfter && isUpdate && !requestInstant) {
-        triggerAble(moveable, ableType, eventOperation, eventAffix, eventType + "After", e, false, iframeSelector);
-    }
-    return true;
+    moveable.forceUpdate();
+  }
+  if (!isStart && !isEnd && !isAfter && isUpdate && !requestInstant) {
+    triggerAble(moveable, ableType, eventOperation, eventAffix, eventType + "After", e, false, iframeSelector);
+  }
+  return true;
 }
 
 export function getTargetAbleGesto(
-    moveable: MoveableManagerInterface,
-    moveableTarget: HTMLElement | SVGElement,
-    eventAffix: string,
+  moveable: MoveableManagerInterface,
+  moveableTarget: HTMLElement | SVGElement,
+  eventAffix: string,
 ) {
-    const controlBox = moveable.controlBox.getElement();
-    const targets: Array<HTMLElement | SVGElement> = [];
+  const controlBox = moveable.controlBox.getElement();
+  const targets: Array<HTMLElement | SVGElement> = [];
 
-    targets.push(controlBox);
+  targets.push(controlBox);
 
-    if (!moveable.props.dragArea || moveable.props.dragTarget) {
-        targets.push(moveableTarget);
-    }
+  if (!moveable.props.dragArea || moveable.props.dragTarget) {
+    targets.push(moveableTarget);
+  }
 
-    const startFunc = (e: any) => {
-        const eventTarget = e.inputEvent.target;
-        const areaElement = moveable.areaElement;
+  const startFunc = (e: any) => {
+    const eventTarget = e.inputEvent.target;
+    const areaElement = moveable.areaElement;
 
-        return eventTarget === areaElement
-            || !moveable.isMoveableElement(eventTarget)
-            || hasClass(eventTarget, "moveable-area")
-            || hasClass(eventTarget, "moveable-padding");
-    };
+    return eventTarget === areaElement
+      || !moveable.isMoveableElement(eventTarget)
+      || hasClass(eventTarget, "moveable-area")
+      || hasClass(eventTarget, "moveable-padding");
+  };
 
-    return getAbleGesto(moveable, targets, "targetAbles", eventAffix, {
-        dragStart: startFunc,
-        pinchStart: startFunc,
-    }, moveable.props.iframeSelector);
+  return getAbleGesto(moveable, targets, "targetAbles", eventAffix, {
+    dragStart: startFunc,
+    pinchStart: startFunc,
+  }, moveable.props.iframeSelector);
 }
+
 export function getAbleGesto(
-    moveable: MoveableManagerInterface,
-    target: HTMLElement | SVGElement | Array<HTMLElement | SVGElement>,
-    ableType: string,
-    eventAffix: string,
-    conditionFunctions: IObject<any> = {},
-    iframeSelector: string
+  moveable: MoveableManagerInterface,
+  target: HTMLElement | SVGElement | Array<HTMLElement | SVGElement>,
+  ableType: string,
+  eventAffix: string,
+  conditionFunctions: IObject<any> = {},
+  iframeSelector: string
 ) {
-    const iframe =  document.querySelector(iframeSelector) as HTMLIFrameElement;
-    const contentWindow = iframe.contentWindow;
-    const {
-        pinchOutside,
-        pinchThreshold,
-    } = moveable.props;
-    const options: GestoOptions = {
-        container: contentWindow as Window,
-        preventDefault: false,
-        pinchThreshold,
-        pinchOutside,
-        iframeSelector
-    };
-    const gesto = new Gesto(target!, options);
+  const iframe = iframeSelector ? document.querySelector(iframeSelector) as HTMLIFrameElement : null;
+  const contentWindow = iframe ? iframe.contentWindow : window;
+  const {
+    pinchOutside,
+    pinchThreshold,
+  } = moveable.props;
+  const options: GestoOptions = {
+    container: contentWindow as Window,
+    preventDefault: false,
+    pinchThreshold,
+    pinchOutside,
+    iframeSelector
+  };
+  const gesto = new Gesto(target!, options);
 
-    ["drag", "pinch"].forEach(eventOperation => {
-        ["Start", "", "End"].forEach(eventType => {
-            gesto.on(`${eventOperation}${eventType}` as any, e => {
-                const eventName = e.eventType;
+  ["drag", "pinch"].forEach(eventOperation => {
+    ["Start", "", "End"].forEach(eventType => {
+      gesto.on(`${eventOperation}${eventType}` as any, e => {
+        const eventName = e.eventType;
 
-                if (conditionFunctions[eventName] && !conditionFunctions[eventName](e)) {
-                    e.stop();
-                    return;
-                }
-                const result = triggerAble(moveable, ableType, eventOperation, eventAffix, eventType, e, false, iframeSelector);
+        if (conditionFunctions[eventName] && !conditionFunctions[eventName](e)) {
+          e.stop();
+          return;
+        }
+        const result = triggerAble(moveable, ableType, eventOperation, eventAffix, eventType, e, false, iframeSelector);
 
-                if (!result) {
-                    e.stop();
-                }
-            });
-        });
+        if (!result) {
+          e.stop();
+        }
+      });
     });
+  });
 
-    return gesto;
+  return gesto;
 }

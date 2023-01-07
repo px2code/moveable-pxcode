@@ -1,6 +1,6 @@
 import { InvertObject } from "framework-utils";
 import { IObject } from "@daybrush/utils";
-import { MoveableManagerState, Able, MoveableClientRect, MoveableProps, ControlPose, ArrayFormat, MoveableRefType, RenderGuidelineInfo, Renderer, RenderGuidelineInnerInfo } from "./types";
+import { Able, ArrayFormat, ControlPose, MoveableClientRect, MoveableManagerState, MoveableProps, MoveableRefType, Renderer, RenderGuidelineInfo, RenderGuidelineInnerInfo } from "./types";
 export declare function round(num: number): number;
 export declare function multiply2(pos1: number[], pos2: number[]): number[];
 export declare function prefix(...classNames: string[]): string;

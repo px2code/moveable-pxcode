@@ -1,5 +1,5 @@
 import * as React from "react";
-import { Able, MoveableInterface, GroupableProps, MoveableDefaultProps, IndividualGroupableProps, MoveableManagerInterface } from "./types";
+import { Able, GroupableProps, IndividualGroupableProps, MoveableDefaultProps, MoveableInterface, MoveableManagerInterface } from "./types";
 import MoveableManager from "./MoveableManager";
 import MoveableGroup from "./MoveableGroup";
 import { IObject } from "@daybrush/utils";

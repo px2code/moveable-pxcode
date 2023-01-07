@@ -8,7 +8,7 @@ version: 0.27.5
 */
 import getAgent from '@egjs/agent';
 import { prefixNames, ref, refs, withMethods, prefixCSS } from 'framework-utils';
-import { getShapeDirection, getRad, hasClass, isUndefined, isObject, isString, isFunction, isArray, splitBracket, splitUnit, splitSpace, average, find, findIndex, convertUnitSize, calculateBoundSize, getDist as getDist$1, dot, addClass, removeClass, splitComma, getKeys } from '@daybrush/utils';
+import { getShapeDirection, getRad, document, hasClass, isUndefined, isObject, isString, isFunction, isArray, splitBracket, splitUnit, splitSpace, average, find, findIndex, convertUnitSize, calculateBoundSize, getDist as getDist$1, dot, addClass, removeClass, splitComma, getKeys } from '@daybrush/utils';
 import { plus, calculate, convertPositionMatrix, convertMatrixtoCSS, invert, createIdentityMatrix, multiplies, createOriginMatrix, minus, convertDimension, multiply, ignoreDimension, getOrigin, convertCSStoMatrix, createScaleMatrix, fromTranslation, rotate, createRotateMatrix, createWarpMatrix } from '@scena/matrix';
 import { toMat, parse, parseMat } from 'css-to-mat';
 import { getMinMaxs, fitPoints, getOverlapSize, getAreaSize, isInside } from 'overlap-area';
@@ -122,7 +122,7 @@ var IS_WEBKIT605 = IS_WEBKIT && function () {
   return res ? parseFloat(res[1]) < 605 : false;
 }();
 var PREFIX = "moveable-";
-var MOVEABLE_CSS = "\n{\n\tposition: absolute;\n\twidth: 1px;\n\theight: 1px;\n\tleft: 0;\n\ttop: 0;\n    z-index: 3000;\n    --moveable-color: #d66;\n    --zoom: 1;\n    --zoompx: 1px;\n    will-change: transform;\n}\n.control-box {\n    z-index: 0;\n}\n.line, .control {\n    position: absolute;\n\tleft: 0;\n    top: 0;\n    will-change: transform;\n}\n.control {\n\twidth: 10px;\n\theight: 10px;\n\tbox-sizing: border-box;\n    background: #fff;\n\tmargin-top: -5px;\n    margin-left: -5px;\n    border: 2px solid var(--moveable-color);\n    z-index: 10;\n}\n.padding {\n    position: absolute;\n    top: 0px;\n    left: 0px;\n    width: 100px;\n    height: 100px;\n    transform-origin: 0 0;\n}\n.line {\n\twidth: 1px;\n    height: 1px;\n    background: #d66;\n    background: var(--moveable-color);\n\ttransform-origin: 0px 50%;\n}\n.line.dashed {\n    box-sizing: border-box;\n    background: transparent;\n}\n.line.dashed.horizontal {\n    border-top: 1px dashed #d66;\n    border-top-color: #d66;\n    border-top-color: var(--moveable-color);\n}\n.line.dashed.vertical {\n    border-left: 1px dashed #d66;\n    border-left-color: #d66;\n    border-left-color: var(--moveable-color);\n}\n.line.vertical {\n    transform: translateX(-50%);\n}\n.line.horizontal {\n    transform: translateY(-50%);\n}\n.line.vertical.bold {\n    width: 2px;\n}\n.line.horizontal.bold {\n    height: 2px;\n}\n\n.control.origin {\n\tborder-color: #f55;\n\tbackground: #fff;\n\twidth: 10px;\n\theight: 10px;\n\tmargin-top: -5px;\n  margin-left: -5px;\n  border-radius: 5px;\n\tpointer-events: none;\n}\n" + [0, 15, 30, 45, 60, 75, 90, 105, 120, 135, 150, 165].map(function (degree) {
+var MOVEABLE_CSS = "\n{\n\tposition: absolute;\n\twidth: 1px;\n\theight: 1px;\n\tleft: 0;\n\ttop: 0;\n    z-index: 3000;\n    --moveable-color: #d66;\n    --zoom: 1;\n    --zoompx: 1px;\n    will-change: transform;\n}\n.control-box {\n    z-index: 0;\n}\n.line, .control {\n    position: absolute;\n\tleft: 0;\n    top: 0;\n    will-change: transform;\n}\n.control {\n\twidth: 10px;\n\theight: 10px;\n\tbox-sizing: border-box;\n    background: #fff;\n\tmargin-top: -5px;\n    margin-left: -5px;\n    border: 2px solid var(--moveable-color);\n    z-index: 10;\n}\n.padding {\n    position: absolute;\n    top: 0px;\n    left: 0px;\n    width: 100px;\n    height: 100px;\n    transform-origin: 0 0;\n}\n.line {\n\twidth: 1px;\n    height: 1px;\n    background: #d66;\n    background: var(--moveable-color);\n\ttransform-origin: 0px 50%;\n}\n.line.dashed {\n    box-sizing: border-box;\n    background: transparent;\n}\n.line.dashed.horizontal {\n    border-top: 1px dashed #d66;\n    border-top-color: #d66;\n    border-top-color: var(--moveable-color);\n}\n.line.dashed.vertical {\n    border-left: 1px dashed #d66;\n    border-left-color: #d66;\n    border-left-color: var(--moveable-color);\n}\n.line.vertical {\n    transform: translateX(-50%);\n}\n.line.horizontal {\n    transform: translateY(-50%);\n}\n.line.vertical.bold {\n    width: 2px;\n}\n.line.horizontal.bold {\n    height: 2px;\n}\n\n.control.origin {\n\tborder-color: #f55;\n\tbackground: #fff;\n\twidth: 12px;\n\theight: 12px;\n\tmargin-top: -6px;\n  margin-left: -6px;\n  border-radius: 6px;\n\tpointer-events: none;\n}\n" + [0, 15, 30, 45, 60, 75, 90, 105, 120, 135, 150, 165].map(function (degree) {
   return "\n.direction[data-rotation=\"" + degree + "\"] {\n\t" + getCursorCSS(degree) + "\n}\n";
 }).join("\n") + "\n.group {\n    z-index: -1;\n}\n.area {\n    position: absolute;\n}\n.area-pieces {\n    position: absolute;\n    top: 0;\n    left: 0;\n    display: none;\n}\n.area.avoid, .area.pass {\n    pointer-events: none;\n}\n.area.avoid+.area-pieces {\n    display: block;\n}\n.area-piece {\n    position: absolute;\n}\n\n" + (IS_WEBKIT605 ? ":global svg *:before {\n\tcontent:\"\";\n\ttransform-origin: inherit;\n}" : "") + "\n";
 var NEARBY_POS = [[0, 1, 2], [1, 0, 3], [2, 0, 3], [3, 1, 2]];
@@ -207,8 +207,8 @@ function getTransformOrigin(style) {
   return transformOrigin ? transformOrigin.split(" ") : ["0", "0"];
 }
 function getOffsetInfo(el, lastParent, iframeSelector, isParent) {
-  var iframe = document.querySelector(iframeSelector);
-  var contentDocument = iframe.contentDocument;
+  var iframe = iframeSelector ? document.querySelector(iframeSelector) : null;
+  var contentDocument = iframe ? iframe.contentDocument : document;
   var body = contentDocument.body;
   var target = !el || isParent ? el : el.parentElement;
   var isEnd = el === lastParent || target === lastParent;
@@ -245,8 +245,8 @@ function getOffsetPosInfo(el, container, style, isFixed, iframeSelector) {
   var offsetTop = el.offsetTop;
 
   if (isFixed) {
-    var iframe = document.querySelector(iframeSelector);
-    var contentDocument = iframe.contentDocument;
+    var iframe = iframeSelector ? document.querySelector(iframeSelector) : null;
+    var contentDocument = iframe ? iframe.contentDocument : document;
     var containerClientRect = (container || contentDocument.documentElement).getBoundingClientRect();
     offsetLeft -= containerClientRect.left;
     offsetTop -= containerClientRect.top;
@@ -286,8 +286,8 @@ function getBodyOffset(el, iframeSelector, isSVG, style) {
     style = getComputedStyle$1(el, iframeSelector);
   }
 
-  var iframe = document.querySelector(iframeSelector);
-  var contentDocument = iframe.contentDocument;
+  var iframe = iframeSelector ? document.querySelector(iframeSelector) : null;
+  var contentDocument = iframe ? iframe.contentDocument : document;
   var bodyStyle = getComputedStyle$1(contentDocument.body, iframeSelector);
   var bodyPosition = bodyStyle.position;
 
@@ -389,8 +389,8 @@ function getMatrixStackInfo(target, iframeSelector, container) {
       parentClientTop = offsetParent.clientTop;
     }
 
-    var iframe = document.querySelector(iframeSelector);
-    var contentDocument = iframe.contentDocument;
+    var iframe = iframeSelector ? document.querySelector(iframeSelector) : null;
+    var contentDocument = iframe ? iframe.contentDocument : document;
 
     if (hasOffset && offsetParent === contentDocument.body) {
       var margin = getBodyOffset(el, iframeSelector, false, style);
@@ -548,8 +548,8 @@ function calculateMatrixStack(target, iframeSelector, container, rootContainer, 
       isRoot3d = _b.is3d; // prevRootMatrix
 
 
-  var iframe = document.querySelector(iframeSelector);
-  var contentDocument = iframe.contentDocument; // if (rootContainer === contentDocument!.body) {
+  var iframe = iframeSelector ? document.querySelector(iframeSelector) : null;
+  var contentDocument = iframe ? iframe.contentDocument : document; // if (rootContainer === contentDocument!.body) {
   //     console.log(offsetContainer, rootContainer, rootMatrixes);
   // }
 
@@ -757,8 +757,8 @@ function getSVGOffset(el, container, n, origin, beforeMatrix, absoluteMatrix, if
 
   var containerClientRect = container.getBoundingClientRect();
   var margin = [0, 0];
-  var iframe = document.querySelector(iframeSelector);
-  var contentDocument = iframe.contentDocument;
+  var iframe = iframeSelector ? document.querySelector(iframeSelector) : null;
+  var contentDocument = iframe ? iframe.contentDocument : document;
 
   if (container === contentDocument.body) {
     margin = getBodyOffset(el, iframeSelector, true);
@@ -896,8 +896,8 @@ function getControlTransform(rotation, zoom) {
   };
 }
 function getCSSSize(target, iframeSelector) {
-  var iframe = document.querySelector(iframeSelector);
-  var contentWindow = iframe.contentWindow;
+  var iframe = iframeSelector ? document.querySelector(iframeSelector) : null;
+  var contentWindow = iframe ? iframe.contentWindow : window;
   var style = contentWindow.getComputedStyle(target);
   return [parseFloat(style.width), parseFloat(style.height)];
 }
@@ -958,8 +958,8 @@ function getTargetInfo(iframeSelector, moveableElement, target, container, paren
     beforeDirection = beforePosition.direction;
     beforeOrigin = plus(beforePosition.origin, [beforePosition.left - result.left, beforePosition.top - result.top]);
     targetClientRect = getClientRect(target, iframeSelector);
-    var iframe = document.querySelector(iframeSelector);
-    var contentDocument = iframe.contentDocument;
+    var iframe = iframeSelector ? document.querySelector(iframeSelector) : null;
+    var contentDocument = iframe ? iframe.contentDocument : document;
     containerClientRect = getClientRect(getOffsetInfo(parentContainer, parentContainer, iframeSelector).offsetParent || contentDocument.body, iframeSelector, true);
 
     if (moveableElement) {
@@ -998,9 +998,9 @@ function getClientRect(el, iframeSelector, isExtends) {
   var top = 0;
   var width = 0;
   var height = 0;
-  var iframe = document.querySelector(iframeSelector);
-  var contentDocument = iframe.contentDocument;
-  var contentWindow = iframe.contentWindow;
+  var iframe = iframeSelector ? document.querySelector(iframeSelector) : null;
+  var contentDocument = iframe ? iframe.contentDocument : document;
+  var contentWindow = iframe ? iframe.contentWindow : window;
 
   if (el === contentDocument.body || el === contentDocument.documentElement) {
     width = contentWindow.innerWidth;
@@ -1139,8 +1139,8 @@ function triggerEvent(moveable, name, params, isManager) {
   return moveable.triggerEvent(name, params, isManager);
 }
 function getComputedStyle$1(el, iframeSelector, pseudoElt) {
-  var iframe = document.querySelector(iframeSelector);
-  var contentWindow = iframe.contentWindow;
+  var iframe = iframeSelector ? document.querySelector(iframeSelector) : null;
+  var contentWindow = iframe ? iframe.contentWindow : window;
   return contentWindow.getComputedStyle(el, pseudoElt);
 }
 function filterAbles(ables, methods, triggerAblesSimultaneously) {
@@ -1406,8 +1406,8 @@ function getRefTarget(target, iframeSelector, isSelector) {
 
   if (isString(target)) {
     if (isSelector) {
-      var iframe = document.querySelector(iframeSelector);
-      var contentDocument = iframe.contentDocument;
+      var iframe = iframeSelector ? document.querySelector(iframeSelector) : null;
+      var contentDocument = iframe ? iframe.contentDocument : document;
       return contentDocument.querySelector(target);
     }
 
@@ -1432,8 +1432,8 @@ function getRefTargets(targets, iframeSelector, isSelector) {
   var userTargets = isArrayFormat(targets) ? [].slice.call(targets) : [targets];
   return userTargets.reduce(function (prev, target) {
     if (isString(target) && isSelector) {
-      var iframe = document.querySelector(iframeSelector);
-      var contentDocument = iframe.contentDocument;
+      var iframe = iframeSelector ? document.querySelector(iframeSelector) : null;
+      var contentDocument = iframe ? iframe.contentDocument : document;
       return __spreadArrays(prev, [].slice.call(contentDocument.querySelectorAll(target)));
     }
 
@@ -11286,8 +11286,8 @@ function triggerAble(moveable, ableType, eventOperation, eventAffix, eventType, 
   var inputTarget;
 
   if (isEnd && inputEvent) {
-    var iframe = document.querySelector(iframeSelector);
-    var contentDocument = iframe.contentDocument;
+    var iframe = iframeSelector ? document.querySelector(iframeSelector) : null;
+    var contentDocument = iframe ? iframe.contentDocument : document;
     inputTarget = contentDocument.elementFromPoint(e.clientX, e.clientY) || inputEvent.target;
   }
 
@@ -11375,8 +11375,8 @@ function getAbleGesto(moveable, target, ableType, eventAffix, conditionFunctions
     conditionFunctions = {};
   }
 
-  var iframe = document.querySelector(iframeSelector);
-  var contentWindow = iframe.contentWindow;
+  var iframe = iframeSelector ? document.querySelector(iframeSelector) : null;
+  var contentWindow = iframe ? iframe.contentWindow : window;
   var _a = moveable.props,
       pinchOutside = _a.pinchOutside,
       pinchThreshold = _a.pinchThreshold;
@@ -13047,8 +13047,8 @@ var InitialMoveable = function (_super) {
     });
     var selectorMap = isReset ? {} : this.selectorMap;
     var nextSelectorMap = {};
-    var iframe = document.querySelector(this.props.iframeSelector);
-    var contentDocument = iframe.contentDocument;
+    var iframe = this.props.iframeSelector ? document.querySelector(this.props.iframeSelector) : null;
+    var contentDocument = iframe ? iframe.contentDocument : document;
     this.refTargets.forEach(function (target) {
       if (isString(target)) {
         if (!selectorMap[target]) {
